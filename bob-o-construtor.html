@@ -1,0 +1,833 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bob, o Construtor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=VT323&display=swap" rel="stylesheet">
+<style>
+	:root {
+		--fundo: #b09010;
+		--preto: #14100a;
+		--preto2: #2e2606;
+		--amarelo: #fcee09;
+		--creme: #f1e9a6;
+		--vermelho: #ff3355;
+		--ciano: #2ee6f6;
+		--corte: 14px;
+		color-scheme: light;
+	}
+	* { box-sizing: border-box; }
+	html { background: var(--fundo); }
+	body {
+		margin: 0;
+		background: var(--fundo);
+		color: var(--preto);
+		font-family: 'VT323', 'Courier New', monospace;
+		font-size: 22px;
+		line-height: 1.2;
+		padding-left: max(16px, env(safe-area-inset-left, 0px));
+		padding-right: max(16px, env(safe-area-inset-right, 0px));
+		padding-block: 18px 28px;
+	}
+	button { font: inherit; color: inherit; }
+	svg.ic { width: 1em; height: 1em; fill: currentColor; display: block; flex: none; }
+
+	.app { max-width: 980px; margin: 0 auto; display: grid; gap: 14px; }
+
+	/* topo */
+	.topo { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px 14px; }
+	.caixa-logo { width: 46px; height: 46px; background: var(--preto); display: grid; place-items: center; clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 9px 100%, 0 calc(100% - 9px)); }
+	.caixa-logo svg { width: 34px; height: auto; }
+	.nome-site { font: 700 21px/1 'Chakra Petch', 'Arial Narrow', sans-serif; text-transform: uppercase; letter-spacing: 0.02em; }
+	.contador { font-size: 26px; }
+	.barra-obra { grid-column: 1 / -1; height: 14px; background: var(--preto); padding: 3px; }
+	.barra-obra i { display: block; height: 100%; width: 0; background: repeating-linear-gradient(-45deg, var(--amarelo) 0 6px, var(--preto) 6px 12px); transition: width 0.5s steps(8); }
+
+	/* a tela */
+	.tela { position: relative; background: var(--preto); padding: 3px; clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px)); }
+	.tela::after { content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 6; background: repeating-linear-gradient(0deg, rgba(20,16,10,0.08) 0 1px, transparent 1px 3px); }
+	.palco { position: relative; background: var(--fundo); padding: clamp(18px, 4.2vw, 42px); min-height: 31rem; clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px)); }
+	.cobre { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; image-rendering: pixelated; }
+
+	.linha-tx { min-height: 1.3em; font-size: 20px; color: var(--preto2); overflow: hidden; white-space: nowrap; text-overflow: clip; }
+
+	.pergunta { margin: 0; font-size: clamp(27px, 4.6vw, 38px); line-height: 1.08; max-width: 34em; text-wrap: balance; }
+	.pergunta::before { content: '> '; color: var(--preto2); }
+	.dica { margin: 0; color: var(--preto2); font-size: 21px; max-width: 40em; }
+	.titulo { font: 700 clamp(19px, 2.6vw, 23px)/1.1 'Chakra Petch', 'Arial Narrow', sans-serif; margin: 0; }
+
+	/* botoes e opcoes */
+	.moldura { display: block; background: var(--preto); padding: 2px; clip-path: polygon(0 0, calc(100% - var(--corte)) 0, 100% var(--corte), 100% 100%, var(--corte) 100%, 0 calc(100% - var(--corte))); }
+	.moldura > .miolo { background: var(--fundo); clip-path: polygon(0 0, calc(100% - var(--corte) + 2px) 0, 100% calc(var(--corte) - 2px), 100% 100%, calc(var(--corte) - 2px) 100%, 0 calc(100% - var(--corte) + 2px)); }
+	.opcao, .botao { display: block; width: 100%; padding: 0; margin: 0; border: 0; background: none; text-align: left; cursor: pointer; }
+	.opcao:focus-visible, .botao:focus-visible { outline: 3px solid var(--preto); outline-offset: 4px; }
+	.opcoes { list-style: none; margin: 26px 0 0; padding: 0; display: grid; gap: 10px; }
+	.opcao .miolo { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 8px 14px 8px 8px; }
+	.opcao .icone { width: 56px; height: 56px; display: grid; place-items: center; background: var(--preto); color: var(--amarelo); font-size: 34px; }
+	.opcao .texto { font-size: 25px; line-height: 1.08; }
+	.opcao .tecla { color: var(--preto2); font-size: 22px; padding-right: 2px; }
+	.opcao:hover .miolo, .opcao:focus-visible .miolo { background: var(--preto); color: var(--amarelo); }
+	.opcao:hover .icone, .opcao:focus-visible .icone { background: var(--amarelo); color: var(--preto); }
+	.opcao:hover .tecla, .opcao:focus-visible .tecla { color: var(--creme); }
+	.opcao.marcada .miolo { background: var(--preto); color: var(--amarelo); }
+	.opcao.marcada .icone { background: var(--vermelho); color: var(--preto); }
+	.opcao[disabled] { cursor: default; }
+
+	.botao { width: auto; display: inline-block; --corte: 10px; }
+	.botao .moldura { background: var(--preto); }
+	.botao .miolo { display: flex; align-items: center; gap: 10px; padding: 12px 22px; background: var(--preto); color: var(--amarelo); font: 700 17px/1 'Chakra Petch', 'Arial Narrow', sans-serif; text-transform: uppercase; letter-spacing: 0.03em; }
+	.botao .miolo svg { font-size: 22px; }
+	.botao:hover .miolo { background: var(--vermelho); color: var(--preto); }
+	.botao.vazado .miolo { background: var(--fundo); color: var(--preto); }
+	.botao.vazado:hover .miolo { background: var(--preto); color: var(--amarelo); }
+	.botao[disabled] { opacity: 0.5; cursor: default; }
+	.linha { display: flex; flex-wrap: wrap; gap: 12px 14px; align-items: center; }
+
+	/* abertura */
+	.abertura { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 26px clamp(18px, 4vw, 40px); align-items: start; }
+	.capa { background: var(--preto); width: clamp(104px, 20vw, 168px); aspect-ratio: 1; display: grid; place-items: center; clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px)); }
+	.capa svg { width: 66%; height: auto; }
+	.titulo-grande { margin: 0; font: 700 clamp(38px, 9.4vw, 86px)/0.92 'Chakra Petch', 'Arial Narrow', sans-serif; text-transform: uppercase; letter-spacing: -0.01em; }
+	.listras { height: 14px; margin: 14px 0 10px; background: repeating-linear-gradient(-45deg, var(--preto) 0 8px, transparent 8px 16px); max-width: 360px; }
+	.frase { margin: 0; font-size: 25px; color: var(--preto2); }
+	.fala { grid-column: 1 / -1; display: grid; gap: 14px; max-width: 40em; border-left: 4px solid var(--preto); padding-left: 18px; }
+	.fala p { margin: 0; font-size: 27px; line-height: 1.12; }
+	.fala p:first-child { font-size: clamp(30px, 4.6vw, 40px); line-height: 1.04; }
+	.caixa-ir { grid-column: 1 / -1; }
+
+	/* desenho */
+	.quadro { margin-top: 22px; max-width: 560px; }
+	.rabisco { display: block; width: 100%; aspect-ratio: 4 / 3; touch-action: none; cursor: crosshair; background-color: var(--preto); background-image: radial-gradient(circle, rgba(252,238,9,0.28) 1.4px, transparent 1.6px); background-size: 25px 25px; clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px)); }
+	.aviso { color: var(--preto); font-size: 22px; min-height: 1.2em; margin: 10px 0 0; }
+
+	.situacao { margin: 22px 0 8px; font-size: 25px; }
+	.varredura { list-style: none; margin: 18px 0 0; padding: 0; display: grid; gap: 4px; max-width: 640px; }
+	.varredura li { display: grid; grid-template-columns: minmax(8ch, 13ch) minmax(0, 1fr) 4.2ch; gap: 12px; align-items: center; padding: 1px 6px; font-size: 22px; }
+	.varredura .trilho { height: 12px; background: var(--preto); padding: 2px; }
+	.varredura .trilho i { display: block; height: 100%; width: 0; background: var(--amarelo); }
+	.varredura .porc { text-align: right; }
+	.varredura li.primeiro { background: var(--preto); color: var(--amarelo); }
+	.varredura li.primeiro .trilho i { background: var(--vermelho); }
+
+	/* resultado */
+	.ficha { display: grid; gap: 30px; }
+	.raca-nome { margin: 0; font: 700 clamp(46px, 11.5vw, 112px)/0.9 'Chakra Petch', 'Arial Narrow', sans-serif; text-transform: uppercase; letter-spacing: -0.01em; overflow-wrap: anywhere; }
+	.chamada { margin: 0 0 10px; font-size: 26px; color: var(--preto2); }
+	.etiquetas { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+	.etiqueta { background: var(--preto); color: var(--amarelo); font: 600 16px/1 'Chakra Petch', 'Arial Narrow', sans-serif; padding: 9px 12px; clip-path: polygon(0 0, calc(100% - 7px) 0, 100% 7px, 100% 100%, 7px 100%, 0 calc(100% - 7px)); }
+	.etiqueta b { color: var(--vermelho); font-weight: 700; }
+	.bloco { display: grid; gap: 12px; max-width: 44em; }
+	.bloco p { margin: 0; font-size: 26px; line-height: 1.12; }
+	.citacao { margin: 0; padding: 2px 0 2px 14px; border-left: 4px solid var(--preto); font-size: 24px; line-height: 1.1; }
+	.colunas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+	.painel { background: var(--preto); color: var(--creme); padding: 20px 20px 22px; clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px)); }
+	.painel .titulo { color: var(--amarelo); margin-bottom: 14px; }
+	.painel.ruim .titulo { color: var(--vermelho); }
+	.painel ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+	.painel li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; font-size: 23px; line-height: 1.1; }
+	.painel li svg { margin-top: 2px; font-size: 22px; color: var(--amarelo); }
+	.painel.ruim li svg { color: var(--vermelho); }
+	.ranking { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; max-width: 640px; }
+	.ranking li { display: grid; grid-template-columns: minmax(9ch, 14ch) minmax(0, 1fr) 4.2ch; gap: 12px; align-items: center; font-size: 24px; }
+	.ranking .trilho { height: 16px; background: var(--preto); padding: 3px; }
+	.ranking .trilho i { display: block; height: 100%; background: var(--amarelo); }
+	.ranking li:first-child .trilho i { background: repeating-linear-gradient(-45deg, var(--amarelo) 0 6px, var(--vermelho) 6px 12px); }
+	.ranking .porc { text-align: right; }
+	.resumo-desenho { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 16px; align-items: center; max-width: 44em; }
+	.resumo-desenho img { display: block; width: 150px; aspect-ratio: 4 / 3; background: var(--preto); }
+	.resumo-desenho p { margin: 0; font-size: 23px; line-height: 1.1; }
+	.miudo { margin: 0; font-size: 20px; color: var(--preto2); max-width: 44em; }
+	.caixa-copia { width: 100%; max-width: 560px; min-height: 130px; background: var(--preto); color: var(--creme); border: 0; padding: 12px; font: 20px/1.15 'VT323', 'Courier New', monospace; }
+
+	/* celular */
+  @media (max-width: 640px) {
+    body { font-size: 21px; }
+    .palco { min-height: 26rem; }
+    .opcao .miolo { grid-template-columns: 44px minmax(0, 1fr); gap: 12px; padding: 7px 10px 7px 7px; }
+    .opcao .icone { width: 44px; height: 44px; font-size: 28px; }
+    .opcao .texto { font-size: 23px; }
+    .opcao .tecla { display: none; }
+    .abertura { grid-template-columns: 1fr; }
+    .colunas { grid-template-columns: 1fr; }
+    .resumo-desenho { grid-template-columns: 1fr; }
+    .varredura li, .ranking li { grid-template-columns: minmax(7ch, 11ch) minmax(0, 1fr) 4ch; gap: 8px; }
+    .nome-site { font-size: 17px; }
+  }
+  @keyframes blink { 0%, 93%, 100% { opacity: 1; } 94%, 97% { opacity: 0; } }
+  .olhos { animation: blink 6s steps(1) infinite; }
+  @media (prefers-reduced-motion: reduce) { .olhos { animation: none; } .barra-obra i { transition: none; } }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header class="topo">
+    <div class="caixa-logo" id="logo"></div>
+    <div class="nome-site">Bob, o Construtor</div>
+    <div class="contador" id="count">obra 00/00</div>
+    <div class="barra-obra" aria-hidden="true"><i id="meter"></i></div>
+  </header>
+  <main class="tela">
+    <div class="palco" id="stage" aria-live="polite">
+      <div id="content"></div>
+      <canvas class="cobre" id="mask" aria-hidden="true"></canvas>
+    </div>
+  </main>
+  <div class="linha-tx" id="tx" aria-hidden="true"></div>
+</div>
+
+<script>
+var LARG = 400;
+var ALT = 300;
+
+function limita(x, a, b) { return Math.max(a, Math.min(b, x)); }
+function meio(x) { return 1 - 2 * Math.abs(x - 0.5); }
+
+// soma os pontos de cada raca
+function calculaResultado(resp, PERGUNTAS, n, aleat) {
+  aleat = aleat || Math.random;
+  const pontos = new Array(n).fill(0);
+  let acertos = new Array(n).fill(0);
+  let maxs = new Array(n).fill(0);
+  PERGUNTAS.forEach((q, qi) => {
+    const melhor = new Array(n).fill(0);
+    if (q.type === 'draw') {
+      melhor.fill(3);
+    } else {
+      q.o.forEach((o) => {
+        melhor[o.p] = Math.max(melhor[o.p], 3);
+        melhor[o.s] = Math.max(melhor[o.s], 1);
+      });
+    }
+    melhor.forEach((b, r) => { maxs[r] += b; });
+    const a = q.type === "draw" ? resp[qi] : q.o[resp[qi]];
+    if (a && a.p !== undefined) {
+      pontos[a.p] += 3;
+      acertos[a.p] += 1;
+      pontos[a.s] += 1;
+    }
+  });
+
+  let ref = Math.round(maxs.reduce((a, b) => a + b, 0) / n);
+  const linhas = pontos.map((sc, r) => ({
+    race: r,
+    score: sc,
+    hits: acertos[r],
+    max: ref,
+    pct: Math.min(100, Math.round((100 * sc) / ref)),
+    tie: aleat(),
+  }));
+  linhas.sort((a, b) => b.score - a.score || b.hits - a.hits || b.tie - a.tie);
+  return linhas;
+}
+
+// deixa os pontos do traco com a mesma distancia
+function reamostra(pts, passo) {
+  if (pts.length < 2) return pts.slice();
+  let saida = [{ x: pts[0].x, y: pts[0].y }];
+  let prev = pts[0];
+  let dist = 0;
+  for (let i = 1; i < pts.length; i++) {
+    let cur = pts[i];
+    let d = Math.hypot(cur.x - prev.x, cur.y - prev.y);
+    while (d > 0 && dist + d >= passo) {
+      let r = (passo - dist) / d;
+      const nx = prev.x + (cur.x - prev.x) * r;
+      let ny = prev.y + (cur.y - prev.y) * r;
+      saida.push({ x: nx, y: ny });
+      prev = { x: nx, y: ny };
+      d = Math.hypot(cur.x - prev.x, cur.y - prev.y);
+      dist = 0;
+    }
+    dist += d;
+    prev = cur;
+  }
+  return saida;
+}
+
+function lerDesenho(tracos) {
+  const S = (tracos || []).filter((s) => s && s.length >= 2);
+  let f = { empty: false, ink: 0, count: 0, size: 0, wide: 0, tall: 0, angular: 0, curvy: 0, closed: 0, fast: 0, sym: 0, dense: 0, centered: 0 };
+  let len = 0, dur = 0;
+  let minx = Infinity, maxx = -Infinity, miny = Infinity, maxy = -Infinity;
+  let sx = 0, sy = 0, sn = 0;
+  let agudos = 0, giroTotal = 0, giroN = 0, fechadas = 0, longos = 0;
+  const rs = [];
+  S.forEach((s) => {
+    let cmp = 0;
+    for (let i = 1; i < s.length; i++) cmp += Math.hypot(s[i].x - s[i - 1].x, s[i].y - s[i - 1].y);
+    len += cmp;
+    dur += Math.max(1, s[s.length - 1].t - s[0].t);
+    s.forEach((p) => {
+      minx = Math.min(minx, p.x); maxx = Math.max(maxx, p.x);
+      miny = Math.min(miny, p.y); maxy = Math.max(maxy, p.y);
+      sx += p.x; sy += p.y; sn += 1;
+    });
+    let r = reamostra(s, 10);
+    rs.push(r);
+    for (let i = 2; i < r.length; i++) {
+      let a1 = Math.atan2(r[i - 1].y - r[i - 2].y, r[i - 1].x - r[i - 2].x);
+      const a2 = Math.atan2(r[i].y - r[i - 1].y, r[i].x - r[i - 1].x);
+      let d = Math.abs(a2 - a1);
+      if (d > Math.PI) d = 2 * Math.PI - d;
+      giroTotal += d;
+      giroN += 1;
+      if (d > 0.95) agudos += 1;
+    }
+    if (cmp > 60) {
+      longos += 1;
+      let e = Math.hypot(s[0].x - s[s.length - 1].x, s[0].y - s[s.length - 1].y);
+      if (e < Math.max(18, cmp * 0.12)) fechadas += 1;
+    }
+  });
+  if (!S.length || len < 40) { f.empty = true; return f; }
+
+  let bw = Math.max(maxx - minx, 1);
+  const bh = Math.max(maxy - miny, 1);
+  const GRADE = 12;
+  const celulas = new Set();
+  rs.forEach((r) => r.forEach((p) => {
+    let cx = Math.min(GRADE - 1, Math.floor(((p.x - minx) / bw) * GRADE));
+    const cy = Math.min(GRADE - 1, Math.floor(((p.y - miny) / bh) * GRADE));
+    celulas.add(cy * GRADE + cx);
+  }));
+  let inter = 0;
+  celulas.forEach((c) => {
+    const cy = Math.floor(c / GRADE);
+    const cx = c % GRADE;
+    if (celulas.has(cy * GRADE + (GRADE - 1 - cx))) inter += 1;
+  });
+  const union = celulas.size * 2 - inter;
+  const jac = union ? inter / union : 0;
+
+  const ratio = bw / bh;
+  let cxm = sx / sn;
+  const cym = sy / sn;
+  const off = Math.hypot((cxm - LARG / 2) / LARG, (cym - ALT / 2) / ALT);
+
+  f.ink = limita(len / (LARG + ALT) / 3.5, 0, 1);
+  f.count = limita((S.length - 1) / 8, 0, 1);
+  f.size = limita(Math.sqrt((bw * bh) / (LARG * ALT)) / 0.85, 0, 1);
+  f.wide = limita((ratio - 0.7) / 1.0, 0, 1);
+  f.tall = limita((1.4 - ratio) / 1.0, 0, 1);
+  f.angular = giroN > 3 ? limita((agudos / giroN) * 5, 0, 1) : 0;
+  f.curvy = giroN > 3 ? limita(giroTotal / giroN / 0.4, 0, 1) : 0;
+  f.closed = longos ? fechadas / longos : 0;
+  f.fast = limita((len / dur - 0.25) / 1.0, 0, 1);
+  f.sym = limita((jac - 0.2) / 0.6, 0, 1);
+  f.dense = limita(celulas.size / (GRADE * GRADE) / 0.45, 0, 1);
+  f.centered = 1 - limita(off / 0.35, 0, 1);
+  f.strokes = S.length;
+  return f;
+}
+
+// uma formula por raca, na mesma ordem da lista
+function notasBrutas(f) {
+  const inverso = (x) => 1 - x;
+  return [
+    0.45 * f.curvy + 0.35 * f.closed + 0.20 * inverso(f.angular),
+    0.40 * meio(f.size) + 0.30 * meio(f.ink) + 0.30 * f.count,
+    0.45 * f.sym + 0.30 * inverso(f.fast) + 0.25 * inverso(f.ink),
+    0.35 * f.sym + 0.35 * f.angular + 0.30 * f.closed,
+    0.50 * f.curvy + 0.30 * f.wide + 0.20 * inverso(f.fast),
+    0.40 * f.fast + 0.35 * f.angular + 0.25 * f.ink,
+    0.40 * f.wide + 0.35 * f.fast + 0.25 * inverso(f.closed),
+    0.50 * inverso(f.size) + 0.30 * inverso(f.ink) + 0.20 * inverso(f.fast),
+    0.40 * f.sym + 0.30 * f.angular + 0.30 * inverso(f.fast),
+    0.45 * f.size + 0.30 * f.ink + 0.25 * f.angular,
+    0.40 * f.dense + 0.35 * f.closed + 0.25 * inverso(f.sym),
+    0.40 * inverso(f.ink) + 0.30 * inverso(f.count) + 0.30 * inverso(f.centered),
+    0.40 * f.tall + 0.35 * f.angular + 0.25 * inverso(f.closed),
+    0.40 * inverso(f.sym) + 0.35 * f.count + 0.25 * f.curvy,
+    0.45 * f.size + 0.35 * inverso(f.fast) + 0.20 * f.closed,
+  ];
+}
+
+function racaDoDesenho(tracos, calib, feat) {
+  const f = feat || lerDesenho(tracos);
+  let bruto = notasBrutas(f);
+  let z = bruto.map((v, i) => (v - calib.mean[i]) / (calib.std[i] || 1) + (calib.bias ? calib.bias[i] : 0));
+  const ordem = z.map((_, i) => i).sort((a, b) => z[b] - z[a]);
+  return { p: ordem[0], s: ordem[1], f, z };
+}
+
+function notasDesenho(f) {
+  const c = [];
+  const add = (cond, w, t) => { if (cond) c.push([w, t]); };
+  add(f.ink < 0.18, 1 - f.ink, 'traço mínimo');
+  add(f.size > 0.72, f.size, 'desenho grande');
+  add(f.size < 0.3, 1 - f.size, "desenho pequeno");
+  add(f.fast > 0.65, f.fast, "traço rápido");
+  add(f.fast < 0.2, 1 - f.fast, "traço lento e firme");
+  add(f.sym > 0.65, f.sym, "formas simétricas");
+  add(f.angular > 0.6, f.angular, "ângulos duros");
+  add(f.curvy > 0.65, f.curvy, 'linhas curvas');
+  add(f.closed > 0.6, f.closed, 'formas fechadas');
+  add(f.count > 0.6, f.count, 'muitos traços');
+  add(!f.empty && f.strokes === 1, 0.5, 'um traço só');
+  c.sort((a, b) => b[0] - a[0]);
+  return c.slice(0, 3).map((x) => x[1]);
+}
+
+var PERGUNTAS = [{"q":"Se hoje fosse o teu último dia, o que ainda faltava fazer?","o":[{"t":"Aprender um monte de coisa. Tem assunto demais que eu nunca cheguei a entender.","i":"lightbulb","p":0,"s":2},{"t":"Dominar de verdade uma coisa só, até não sobrar erro nenhum.","i":"book-open","p":2,"s":1},{"t":"Passar um dia inteiro perto da água, sem celular e sem hora.","i":"waves","p":4,"s":6},{"t":"Pegar a estrada sem destino, só pra ver onde ia dar.","i":"wind","p":6,"s":0},{"t":"Provar o meu valor e deixar um nome que a minha família carregasse com orgulho.","i":"trophy","p":8,"s":5}]},{"q":"Trabalho em grupo e ninguém quer começar. O que tu faz?","o":[{"t":"Divido as tarefas, monto um cronograma e vou ajustando conforme der errado.","i":"checklist","p":1,"s":3},{"t":"Pego a parte mais difícil e faço direito, sem pressa.","i":"tools","p":3,"s":9},{"t":"Falo na lata que assim não dá e junto quem topa.","i":"megaphone","p":5,"s":6},{"t":"Faço o que ninguém quis fazer e espero o resto do grupo aparecer.","i":"hand","p":7,"s":1},{"t":"Assumo a frente: tu faz isso, tu faz aquilo. Alguém tem que decidir.","i":"flag","p":9,"s":5}]},{"q":"Fim de semana sem compromisso nenhum. Como ele começa?","o":[{"t":"Livro, música e um canto quieto.","i":"headphone","p":2,"s":13},{"t":"Praia, rio ou piscina. Onde tiver água e nenhum horário.","i":"drop","p":4,"s":0},{"t":"Pego a bike ou a estrada sem saber pra onde.","i":"compass","p":6,"s":4},{"t":"Treino cedo, arrumo a casa e deixo tudo no lugar. Aí o descanso é merecido.","i":"alarm-clock","p":8,"s":14},{"t":"Churrasco longo, com a família inteira na mesa.","i":"fire","p":10,"s":12}]},{"q":"Um amigo te chama pra uma festa cheia de gente. Como tu chega?","o":[{"t":"Levo uma coisa que eu mesmo fiz e fico na roda falando do projeto.","i":"gift","p":3,"s":1},{"t":"Chego falando com todo mundo e viro a voz mais alta da festa.","i":"volume-3","p":5,"s":6},{"t":"Chego cedo e já ajudo a arrumar.","i":"home","p":7,"s":10},{"t":"Chego já propondo um desafio. Quem ganhar é o rei da noite.","i":"sword","p":9,"s":14},{"t":"Vou, mas fico num canto observando. Em uma hora já quero ir embora.","i":"eye","p":11,"s":2}]},{"q":"Tu perdeu o ônibus e vai chegar uma hora atrasado. Qual é a reação?","o":[{"t":"Respiro fundo. Correr não adianta, chego quando chegar.","i":"hourglass","p":4,"s":0},{"t":"Largo tudo e vou a pé ou de carona. Parado é que eu não fico.","i":"human-run","p":6,"s":5},{"t":"Aviso, peço desculpa e chego com tudo pronto. Pontualidade é palavra dada.","i":"phone-call","p":8,"s":5},{"t":"Aproveito e como alguma coisa na padaria. De barriga cheia tudo se resolve.","i":"coffee","p":10,"s":7},{"t":"Chego por último, de propósito e com estilo. Quem esperou vai notar.","i":"sunglasses","p":12,"s":11}]},{"q":"Dois amigos teus brigaram feio e o grupo rachou. O que tu faz?","o":[{"t":"Reúno todo mundo e falo na cara de cada um. Se tiver que gritar, a gente grita e resolve.","i":"angry","p":5,"s":6},{"t":"Converso com um de cada vez e peço pra voltarem. Não suporto ver o grupo se desfazendo.","i":"users","p":7,"s":1},{"t":"Puxo os dois num canto e resolvo no ato. Briga mal resolvida me tira do sério.","i":"target","p":9,"s":8},{"t":"Me afasto. Já vi isso antes e sei que o tempo mostra quem fica.","i":"moon","p":11,"s":8},{"t":"Escuto os dois, descubro o que cada um quer e monto um acordo que me favoreça um pouco.","i":"scale","p":13,"s":11}]},{"q":"Tu descobre que alguém falou mal de ti pelas costas. E aí?","o":[{"t":"Fico furioso por uns minutos, desabafo com alguém e já esqueci.","i":"zap","p":6,"s":4},{"t":"Vou falar com a pessoa de frente. Se for verdade, eu assumo.","i":"shield","p":8,"s":1},{"t":"Engulo e sigo em frente, mas guardo o nome. O bando sabe quem é quem.","i":"archive","p":10,"s":12},{"t":"Sorrio como se nada tivesse acontecido e espero a hora certa de devolver.","i":"smile","p":12,"s":10},{"t":"Não respondo. Quem me conhece sabe quem eu sou.","i":"meh","p":14,"s":8}]},{"q":"O chefe (ou o professor) pede algo quase impossível pro prazo. Tu aceita?","o":[{"t":"Aceito e dou tudo de mim. Se der errado, não foi por falta de esforço.","i":"battery-full","p":7,"s":10},{"t":"Aceito na hora. Desafio grande é o que me move.","i":"bullseye","p":9,"s":14},{"t":"Aceito, mesmo sabendo das noites sem dormir. Já passei por coisa pior.","i":"skull","p":11,"s":13},{"t":"Aceito, mas só se vier alguma coisa em troca. Tudo tem preço.","i":"coins","p":13,"s":11},{"t":"Aceito e descubro o caminho no meio. Sempre dou um jeito.","i":"shuffle","p":0,"s":7}]},{"type":"draw","q":"Desenha o que a palavra \"lar\" quer dizer pra ti. Pode ser um lugar, um bicho, um rabisco. Não precisa ficar bonito."},{"q":"Tu foi escolhido pra liderar um projeto. Como conduz?","o":[{"t":"Com regras claras e exemplo. Eu cobro de mim primeiro.","i":"script","p":8,"s":9},{"t":"Cuidando do básico: ninguém trabalha com fome, com sono ou sozinho.","i":"heart","p":10,"s":12},{"t":"Pela presença. As pessoas seguem porque querem a minha aprovação.","i":"crown","p":12,"s":13},{"t":"Em silêncio. Seguro a pressão pra equipe nem sentir.","i":"wall","p":14,"s":9},{"t":"Descubro o ponto forte de cada um e coloco cada peça no lugar.","i":"chess","p":1,"s":3}]},{"q":"Se pudesse ter uma habilidade de verdade na vida real, qual seria?","o":[{"t":"Nunca sentir medo na hora de enfrentar alguém.","i":"human-arms-up","p":9,"s":14},{"t":"Nunca desistir. Levantar de qualquer queda.","i":"arrow-big-up","p":11,"s":2},{"t":"Saber o que cada pessoa quer só de olhar.","i":"eye","p":13,"s":11},{"t":"Aprender qualquer coisa só de ver uma vez.","i":"sparkles","p":0,"s":7},{"t":"Foco total e memória perfeita.","i":"memory-stick","p":2,"s":12}]},{"q":"Tu ganhou um dia inteiro livre, sem obrigação nenhuma. Qual é o plano?","o":[{"t":"Cozinhar ou comer num lugar bom, com o pessoal por perto.","i":"cake","p":10,"s":5},{"t":"Dormir até tarde, sair de noite e só voltar quando o sol nascer.","i":"moon-stars","p":12,"s":10},{"t":"Sentar num lugar bonito e ficar quieto olhando o horizonte.","i":"tree","p":14,"s":3},{"t":"Aprender algo novo, treinar e conhecer gente diferente.","i":"trending-up","p":1,"s":3},{"t":"Consertar, montar, construir alguma coisa de verdade.","i":"tools","p":3,"s":9}]},{"q":"O que mais te irrita no dia a dia?","o":[{"t":"Ser esquecido. Quero deixar uma marca, mesmo que doa.","i":"user-x","p":11,"s":8},{"t":"Rotina previsível. Eu preciso de algum jogo, de alguma intriga.","i":"dice","p":13,"s":11},{"t":"Repetir a mesma coisa. Mudar e aprender é o que me mantém vivo.","i":"repeat","p":0,"s":7},{"t":"Bagunça e descuido. Gosto de ordem, silêncio e capricho.","i":"grid","p":2,"s":13},{"t":"Gente brigando o tempo todo. Preciso de um ambiente leve pra respirar.","i":"cloud","p":4,"s":0}]},{"q":"Um amigo próximo está num momento muito ruim. O que tu faz?","o":[{"t":"Apareço de madrugada, quando ninguém mais aparece, e fico o tempo que precisar.","i":"moon","p":12,"s":13},{"t":"Fico por perto. Falo pouco, mas ele sabe que pode se apoiar em mim.","i":"sofa","p":14,"s":9},{"t":"Ajudo a montar um plano pra sair dessa, passo a passo.","i":"map","p":1,"s":8},{"t":"Faço algo com as mãos: conserto uma coisa dele, levo comida ou a ferramenta que faltava.","i":"package","p":3,"s":14},{"t":"Fico colado nele e chamo o bando todo. Ninguém passa por isso sozinho.","i":"group","p":5,"s":6}]},{"q":"Surge uma oportunidade que pode mudar a tua vida, mas tu tem que decidir hoje. E aí?","o":[{"t":"Peso o risco como num contrato. Se a brecha estiver a meu favor, eu entro.","i":"briefcase","p":13,"s":12},{"t":"Testo uma versão pequena, vejo o resultado e ajusto.","i":"test-tube","p":0,"s":4},{"t":"Peço um dia a mais e estudo tudo antes. Não decido no impulso.","i":"calendar","p":2,"s":4},{"t":"Deixo a vida me levar. Se tiver que ser, vai se mostrar.","i":"ship","p":4,"s":2},{"t":"Aceito na hora. Se der errado, pelo menos eu fui.","i":"send","p":6,"s":4}]},{"q":"Primeiro dia num mundo novo de Minecraft com os amigos. O que tu faz?","o":[{"t":"Carrego o que for preciso e fico de guarda na base, pros outros trabalharem em paz.","i":"shield","p":14,"s":3},{"t":"Monto o plano da semana: quem minera, quem constrói, quando a gente sai explorar.","i":"kanban","p":1,"s":2},{"t":"Construo a base inteira. Parede torta eu derrubo e refaço.","i":"blocks","p":3,"s":7},{"t":"Saio na frente caçando e volto com comida pra todo mundo.","i":"dog","p":5,"s":10},{"t":"Faço o serviço chato que ninguém quer: cavar, buscar madeira, organizar baú.","i":"box","p":7,"s":0}]}];
+var RACAS = [{"name":"Slime","pt":"Slime","diff":"Início extremamente difícil","final":"God Slime","persona":"Tu não tem pressa. Cutuca tudo pra ver como funciona, aprende no meio do caminho e quase nunca perde a calma. Quem te vê quieto acha que tu não tá fazendo nada, mas tu tá desmontando o problema.","forte":["Perto do fim junta Absorb & Dissolve, regeneração infinita e um monte de resistências.","Corta pela metade o dano físico desde o primeiro minuto.","O God Slime tem o maior salto de vida e energia da linha toda."],"fraco":["Começa com só 10 de vida. É o início mais duro do mod.","É Majin: chega a Demon Lord, mas nunca a Herói.","Pra despertar precisa de uma Demon Lord Seed e de 10.000 almas."]},{"name":"Human","pt":"Humano","diff":"Início difícil","final":"Divine Human","persona":"Tu não nasceu com nada de especial e resolveu isso na marra. Planeja, ajusta, tenta de novo. Quando o plano falha, tu já tá no plano B.","forte":["No Divine Human o Divine Ki Release faz o golpe físico causar dano total até em chefe, como a Hinata na fase final.","Com 100.000 EP já alcança as outras raças.","Mantém o caminho do Herói aberto e ainda pode virar Vampiro mais adiante."],"fraco":["Começa sem nenhuma Intrinsic Skill e com pouco poder.","Pra virar Saint precisa derrotar 4 chefes (Wither e Ender Dragon contam).","Escolher fecha porta: Holy fecha o Demon Lord, Vampiro fecha o Herói."]},{"name":"Elf","pt":"Elfo","diff":"Início difícil","final":"Divine Elf","persona":"Tu gosta das coisas bem feitas e não tem paciência pra fazer pela metade. Fala pouco, observa, e quando resolve aprender algo vai até o fim.","forte":["Bate mais rápido que qualquer outra raça do mod: o maior bônus de velocidade de ataque.","Ganha um bônus grande de movimento.","Começa com um Espírito do Vento garantido."],"fraco":["Começa fraco. É um dos inícios mais difíceis.","Aposta em velocidade, não em dureza: termina com 1.000 de vida.","Pra virar Saint precisa de 4 chefes, e o alinhamento Holy fecha o Demon Lord."]},{"name":"Dwarf","pt":"Anão","diff":"Início difícil","final":"Divine Dwarf","persona":"Mão na massa e cabeça dura. Tu só confia no que tu mesmo viu ficar de pé e não larga um projeto até ele funcionar.","forte":["O primeiro Intrinsic Skill é o Divine Ki Release, que consegue quebrar o equipamento mais fraco de um inimigo.","Começa com um Espírito da Terra garantido.","Chega ao final com 1.060 de vida e 1.000.000 de Aura e de Magicule."],"fraco":["Começa fraco, no nível do Human.","Pra virar Saint precisa derrotar 4 chefes.","É Holy: nunca vira Demon Lord."]},{"name":"Merfolk","pt":"Povo do mar","diff":"Início difícil","final":"Divine Fish","persona":"Tu leva tudo com calma e percebe o clima de uma sala antes de todo mundo. Briga à toa te cansa, e a correnteza costuma resolver mais que o grito.","forte":["Debaixo d'água é a melhor raça do mod: nada mais rápido e minera melhor.","Respira na água e, no Divine Fish, usa Hydraulic Propulsion e Water Blade.","Termina com 1.060 de vida e Divine Ki Release."],"fraco":["A vantagem toda é debaixo d'água. Em terra a wiki não cita destaque nenhum.","Pra virar Saint precisa derrotar 4 chefes.","Começa difícil e demora a engrenar."]},{"name":"Beastfolk","pt":"Povo-fera","diff":"Início fácil","final":"Divine Beast","persona":"Tu sente primeiro e pensa depois, e quase nunca erra no instinto. O bando vem em primeiro lugar, e filtro é opcional.","forte":["O Divine Beast tem a maior vida espiritual do mod: 8.000.","Beast Transformation: cura total, +15 de ataque, +10 de armadura e Aura e Magicule em dobro por 3 minutos (6 depois de dominar).","Fecha com 1.200 de vida e Self-Regeneration."],"fraco":["Depois da transformação, Aura e Magicule caem pela metade e vêm Fraqueza II, Fragilidade II e Paralisia por 10 minutos.","A transformação tem 20 minutos de recarga.","Spirit Beast pede 4 chefes, e enquanto está no alinhamento Default não vira Demon Lord."]},{"name":"Harpy","pt":"Harpia","diff":"Início fácil","final":"Divine Bird","persona":"Tu não aguenta ficar preso: nem em sala, nem em rotina, nem em plano de cinco anos. Decide rápido, se joga e depois vê no que deu.","forte":["O Divine Bird tem o lançamento de planeio mais forte da linha.","Não se afoga e sofre menos dano de queda.","Magic Jamming trava a magia de inimigos que não sejam muito mais fortes."],"fraco":["Magic Jamming gasta energia e só funciona em inimigos que não são muito mais fortes.","É Majin do início ao fim: nunca vira Holy nem Herói.","Termina com 1.000 de vida, abaixo de várias raças."]},{"name":"Goblin","pt":"Goblin","diff":"Início difícil","final":"Divine Oni","persona":"Tu começa pequeno, mas ninguém trabalha mais que tu. Humilde, fiel, o tipo de pessoa que o grupo só percebe quando falta.","forte":["No final vira Divine Oni: 1.200 de vida, a maior da linha.","Ganha de uma vez Strength, Self-Regeneration, Steel Strength e Divine Ki Release.","Depois de virar Hobgoblin com 2.000 EP o jogo abre rápido."],"fraco":["O início mais fraco do mod: 12 de vida e penalidade em quase tudo.","Fica sem nenhuma Intrinsic Skill até a forma final.","Pra entrar na linha dos Ogres precisa passar no teste do Elemental Colossus."]},{"name":"Lizardman","pt":"Homem-lagarto","diff":"Início difícil","final":"Divine Dragon","persona":"Palavra dada é contrato. Tu treina, cumpre horário e cobra de ti antes de cobrar dos outros. Orgulho é combustível, e às vezes é freio também.","forte":["O Divine Dragon vai a qualquer lugar: os debuffs de frio da fase Lizardman somem.","Tem sopros de fogo, gelo e raio, Dragon Skin e Magic Resistance.","Tem o lançamento de planeio mais forte entre as quatro formas da linha."],"fraco":["Sofre em biomas frios até virar Dragonewt.","Dragonewt exige 10 Dragon Essence.","Termina com 980 de vida, abaixo de quase todas as outras."]},{"name":"Ogre","pt":"Ogro","diff":"Início fácil","final":"Divine Oni ou Divine Fighter","persona":"Direto, forte e sem medo de começar. Tu resolve de frente, e as pessoas te seguem sem ninguém ter pedido.","forte":["Tem o maior número de ramos de evolução do mod.","O Divine Oni tem 1.200 de vida e o maior bônus de ataque da linha.","Começa com Strength e um Espírito do Fogo garantido."],"fraco":["O caminho Wicked Oni é irreversível, exige 10 Daemon Essence e fecha o do Herói.","As habilidades de fúria te deixam mais fraco por um tempo depois.","O Magicule do Labirinto envenena quem tem menos de uns 7.500 EP."]},{"name":"Orc","pt":"Orc","diff":"Início intermediário","final":"Divine Boar","persona":"Tu aguenta o tranco, cuida da mesa e do bando. Se tem comida e gente por perto, tu enfrenta o mundo. Rancor fica guardado, nunca esquecido.","forte":["Não sofre nenhum recuo de golpe.","O Orc Lord traz Self-Regeneration e Starved, que pede metade do que o Gluttony pede.","O Divine Boar fecha com Divine Ki Release e 1.000.000 de Aura e de Magicule."],"fraco":["Quase sem Magicule e sem Intrinsic Skills até virar Orc Lord (10 Royal Blood).","A fome cobra caro nos estágios Majin (Hunger III, e V no Hardcore Race).","Majin fecha o caminho do Herói."]},{"name":"Wight","pt":"Wight","diff":"Início difícil","final":"Divine Skeleton","persona":"Tu já passou por coisa feia, não faz questão de contar, e se recusa a cair duas vezes no mesmo lugar. Fala pouco e demora pra esquecer.","forte":["Começa com resistência a dano físico e Pain Nullification.","Mortos-vivos te ignoram se tu não atacar primeiro.","O Divine Skeleton não tem penalidade de sol nenhuma e termina com 1.160 de vida."],"fraco":["Pega fogo no sol sem capacete, até evoluir.","É Majin: o caminho do Herói fica fechado.","A wiki classifica como difícil de jogar."]},{"name":"Ghoul","pt":"Ghoul","diff":"Início difícil","final":"Divine Vampire","persona":"Tu tem senso de entrada. Escolhe com cuidado a hora de aparecer, e quando aparece ninguém esquece. Intenso demais pra ser discreto.","forte":["Se cura mais rápido que quase tudo no mod.","Como Vampire drena sangue, vira morcego e usa Charm, Coercion e Shadow Motion.","O Divine Vampire não sofre efeito do sol e ganha Infinite Regeneration."],"fraco":["Queima no sol e comida não cura, até virar Vampire.","Termina com 900 de vida, a menor entre as 15 raças.","Em noite de lua nova ainda leva uma Fraqueza e uma Fragilidade leves."]},{"name":"Lesser Daemon","pt":"Daemon menor","diff":"Início intermediário","final":"Devil Lord","persona":"Tu lê o que as pessoas querem antes de elas falarem, e adora um contrato com a brecha a teu favor. Charme é tua moeda, imprevisível é teu hábito.","forte":["Começa em forma espiritual, com voo, Possession e bastante Magicule.","O Devil Lord tem 6.666 de vida espiritual e magias como Explosion, Dimension Cutter e Full Recovery.","Termina com Chain Explosion, Mental Crush e Anti-Magic Area."],"fraco":["Fora de Hell, um Daemon sem nome e sem despertar fica travado em 40.000 de Aura e 100.000 de Magicule.","Possession é limitada: corpos de no máximo 1.000 de vida e 100 de ataque, que somem em 5 minutos.","Pra virar Devil Lord precisa despertar, receber um nome e ter corpo físico."]},{"name":"Giant","pt":"Gigante","diff":"Início fácil","final":"Divine Giant","persona":"Gentil, paciente e difícil de tirar do sério. Quando alguém consegue, o chão treme. No resto do tempo tu é quem segura a barra pros outros.","forte":["Tem o melhor início do mod: 50 de vida e o maior bônus de ataque de todas as raças (14).","Titanification: 4,5 vezes o tamanho, +60 de ataque e +20 de armadura por 2 minutos.","Os golpes desgastam a armadura e os itens do inimigo."],"fraco":["O golpe é lento e o corpo não passa na maioria das portas.","Ancient Giant pede 300.000 EP e 20 Ancient Debris.","É Majin: chega a Demon Lord, nunca a Herói."]}];
+var CALIB = {"mean":[0.5533,0.4553,0.5452,0.3975,0.5735,0.3922,0.5868,0.5053,0.4329,0.4223,0.5434,0.6371,0.297,0.4052,0.493],"std":[0.1819,0.1544,0.2033,0.2205,0.1808,0.1822,0.2064,0.1953,0.189,0.1572,0.175,0.1887,0.1687,0.2025,0.195],"bias":[0.0422,-0.0819,0.0008,0.069,0.041,0.0257,-0.256,0.1573,0.1108,-0.2196,-0.2586,0.1923,0.0635,0.1702,-0.0567]};
+var ICONES = {"check":"<path fill=\"currentColor\" d=\"M10 18H8v-2h2zm-2-2H6v-2h2zm4-2v2h-2v-2zm-6 0H4v-2h2zm8 0h-2v-2h2zm2-2h-2v-2h2zm2-2h-2V8h2zm2-2h-2V6h2z\"/>","warning-diamond":"<path fill=\"currentColor\" d=\"M2 10h2v2H2zm0 4h2v-2H2zm20-4h-2v2h2zm0 4h-2v-2h2zM4 8h2v2H4zm0 8h2v-2H4zm16-8h-2v2h2zm0 8h-2v-2h2zM6 6h2v2H6zm0 12h2v-2H6zM18 6h-2v2h2zm0 12h-2v-2h2zM8 4h2v2H8zm0 16h2v-2H8zm8-16h-2v2h2zm0 16h-2v-2h2zM10 2h2v2h-2zm0 20h2v-2h-2zm4-20h-2v2h2zm0 20h-2v-2h2zm-3-5h2v-2h-2zm0-4h2V7h-2z\"/>","pencil":"<path fill=\"currentColor\" d=\"M4 16h2v2h2v2h2v2H2v-8h2zm8 4h-2v-2h2zm2-2h-2v-2h2zm-4-2H8v-2h2zm6 0h-2v-2h2zM6 14H4v-2h2zm6 0h-2v-2h2zm6 0h-2v-2h2zM8 12H6v-2h2zm6 0h-2v-2h2zm6 0h-2v-2h2zm-10-2H8V8h2zm8 0h-2V8h2zm4 0h-2V8h2zM12 8h-2V6h2zm4 0h-2V6h2zm4 0h-2V6h2zm-6-2h-2V4h2zm4 0h-2V4h2zm-2-2h-2V2h2z\"/>","trash":"<path fill=\"currentColor\" d=\"M18 22H6v-2h12zM9 6h6V4h2v2h5v2h-2v12h-2V8H6v12H4V8H2V6h5V4h2zm6-2H9V2h6z\"/>","send":"<path fill=\"currentColor\" d=\"M4 19h4v2H2v-8h2zm8 0H8v-2h4zm4-2h-4v-2h4zm4-2h-4v-2h4zm-10-2H4v-2h6zm12 0h-2v-2h2zM8 5H4v6H2V3h6zm12 6h-4V9h4zm-4-2h-4V7h4zm-4-2H8V5h4z\"/>","reload":"<g fill=\"currentColor\"><path d=\"M16 4h2v6h-2zm-2-2h2v2h-2zm0 2h2v8h-2zM4 8H2v5h2z\"/><path d=\"M4 6h16v2H4zm4 14H6v-6h2zm2 2H8v-2h2zm0-2H8v-8h2zm10-4h2v-5h-2z\"/><path d=\"M20 18H4v-2h16z\"/></g>","copy":"<path fill=\"currentColor\" d=\"M8 6h12v2H8zM4 2h12v2H4zm2 6h2v12H6zM2 4h2v12H2zm6 16h12v2H8zM20 8h2v12h-2zm-4-4h2v2h-2zM4 16h2v2H4z\"/>","cpu":"<path fill=\"currentColor\" d=\"M5 3h14v2H5zm0 16h14v2H5zM3 5h2v14H3zm16 0h2v14h-2zM9 7h6v2H9zm0 8h6v2H9zM7 9h2v6H7zm8 0h2v6h-2zm-4-8h2v2h-2zm0 20h2v2h-2zM1 11h2v2H1zm20 0h2v2h-2zm0-4h2v2h-2zm0 8h2v2h-2zM1 15h2v2H1zm0-8h2v2H1zm6-6h2v2H7zm8 0h2v2h-2zm0 20h2v2h-2zm-8 0h2v2H7z\"/>","terminal":"<path fill=\"currentColor\" d=\"M4 2h16v2H4zm0 18h16v2H4zM2 4h2v16H2zm18 0h2v16h-2zM6 16h2v2H6zm2-2h2v2H8zm-2-2h2v2H6z\"/>","close":"<path fill=\"currentColor\" d=\"M7 19H5v-2h2zm12 0h-2v-2h2zM9 15v2H7v-2zm8 2h-2v-2h2zm-6-2H9v-2h2zm4 0h-2v-2h2zm-2-2h-2v-2h2zm-2-2H9V9h2zm4 0h-2V9h2zM9 9H7V7h2zm8 0h-2V7h2zM7 7H5V5h2zm12 0h-2V5h2z\"/>","lightbulb":"<path fill=\"currentColor\" d=\"M9 4h6v2H9zM7 6h2v2H7zm8 0h2v2h-2zm4-2h2v2h-2zm2-2h2v2h-2zM0 10h3v2H0zm21 0h3v2h-3zM3 4h2v2H3zM1 2h2v2H1zm6 12h2v2H7zm8 0h2v2h-2zM5 8h2v6H5zm12 0h2v6h-2zm-8 8h6v2H9zm0 4h6v2H9zm0-2h2v2H9zm4 0h2v2h-2zM11 0h2v3h-2z\"/>","book-open":"<path fill=\"currentColor\" d=\"M2 3h9v2H2zM0 19h11v2H0zM13 3h9v2h-9zm0 16h11v2H13zM11 5h2v18h-2zM0 5h2v14H0zm22 0h2v14h-2zm-7 2h5v2h-5zm0 4h5v2h-5zm0 4h2v2h-2z\"/>","waves":"<path fill=\"currentColor\" d=\"M2 18h4v-2H2zm0-6h4v-2H2zm0-6h4V4H2zm4 14h4v-2H6zm0-6h4v-2H6zm0-6h4V6H6zm4 10h4v-2h-4zm0-6h4v-2h-4zm0-6h4V4h-4zm4 14h4v-2h-4zm0-6h4v-2h-4zm0-6h4V6h-4zm4 10h4v-2h-4zm0-6h4v-2h-4zm0-6h4V4h-4z\"/>","wind":"<path fill=\"currentColor\" d=\"M2 7h10v2H2zm10-4h2v4h-2zM7 1h5v2H7zM2 11h18v2H2zm18-4h2v4h-2zm-4-2h4v2h-4zM2 17h12v-2H2zm12 2h2v-2h-2zm-5 2h5v-2H9z\"/>","trophy":"<path fill=\"currentColor\" d=\"M16 17h-3v2h2v2H9v-2h2v-2H8v-2h8zm2-12h4v6h-2V7h-2v4h2v2h-2v2h-2V5H8v10H6v-2H4v-2h2V7H4v4H2V5h4V3h12z\"/>","checklist":"<path fill=\"currentColor\" d=\"M19 4h2v2h-2zm-2 4V6h2v2zm-2 0h2v2h-2zm0 0h-2V6h2zM3 6h8v2H3zm8 10H3v2h8zm7 2v-2h2v-2h-2v2h-2v-2h-2v2h2v2h-2v2h2v-2zm0 0v2h2v-2z\"/>","tools":"<path fill=\"currentColor\" d=\"M9 22H7v-2h2zm12-6h2v6h-6v-6h2v-6h2zm-2 2v2h2v-2zM7 20H5v-8h2zm4 0H9v-8h2zm-6-8H3v-2h2zm8 0h-2v-2h2zM3 10H1V4h2zm12 0h-2V4h2zm4 0h-2V4h2zm4 0h-2V4h2zM7 6h2V2h4v2h-2v4H5V4H3V2h4zm14-2h-2V2h2z\"/>","megaphone":"<path fill=\"currentColor\" d=\"M4 6h12v2H4zM2 8h2v6H2zm2 6h12v2H4zM20 2h2v18h-2zm-2 16h2v2h-2zm-2-2h2v2h-2zm0-12h2v2h-2zm2-2h2v2h-2zM8 8h2v6H8zm-2 8h2v4H6zm2 4h4v2H8zm2-4h2v4h-2z\"/>","hand":"<path fill=\"currentColor\" d=\"M21 7h2v5h-2zm-4-2h2v7h-2zm-4-2h2v8h-2zM9 3h2v8H9zM5 5h2v8H5zm14 0h2v2h-2zm-4-2h2v2h-2zm-4-2h2v2h-2zM7 3h2v2H7zm-4 8h2v2H3zm-2 2h2v2H1zm0 2h2v2H1zm2 2h2v2H3zm2 2h2v2H5zm2 2h12v2H7zm12-2h2v2h-2zm2-7h2v7h-2zM5 13h2v2H5zm2 2h2v2H7z\"/>","flag":"<g fill=\"currentColor\"><path d=\"M4 2h2v20H4z\"/><path d=\"M4 4h16v2H4zm12 2h2v2h-2zm-2 2h2v2h-2zm2 2h2v2h-2zM4 12h16v2H4z\"/></g>","headphone":"<g fill=\"currentColor\"><path d=\"M14 13h7v2h-7zm2 6h3v2h-3z\"/><path d=\"M14 13h2v8h-2zm5-6h2v12h-2zM3 13h7v2H3zm2 6h3v2H5z\"/><path d=\"M3 7h2v12H3zm5 6h2v8H8zM7 3h10v2H7zM5 5h2v2H5zm12 0h2v2h-2z\"/></g>","drop":"<path fill=\"currentColor\" d=\"M13 2h-2v2H9v4H7v4H5v6h2v2h2v2h6v-2h2v-2h2v-6h-2V8h-2V4h-2zm0 2v4h2v4h2v6h-2v2H9v-2H7v-6h2V8h2V4z\"/>","compass":"<path fill=\"currentColor\" d=\"M18 22H6v-2h12zM6 20H4v-2h2zm14 0h-2v-2h2zm-10-4h2v2h-2v1H8v-9h2zm-6 2H2V6h2zm18 0h-2V6h2zm-8-2h-2v-2h2zm2-2h-2V8h-2V6h2V5h2zm-3-1h-2v-2h2zm-1-3h-2V8h2zM6 6H4V4h2zm14 0h-2V4h2zm-2-2H6V2h12z\"/>","alarm-clock":"<path fill=\"currentColor\" d=\"M8 5h8v2H8zm0 14h8v2H8zM6 7h2v2H6zm0 10h2v2H6zM16 7h2v2h-2zm0 10h2v2h-2zM4 9h2v8H4zm14 0h2v8h-2zM4 2h2v2H4zm0 17h2v2H4zm14 0h2v2h-2zm0-17h2v2h-2zM2 4h2v2H2zm18 0h2v2h-2zm-9 5h2v4h-2zm2 4h2v2h-2z\"/>","fire":"<g fill=\"currentColor\"><path d=\"M9 2h2v4H9zM7 6h2v2H7zM5 8h2v2H5zm8 2h2v2h-2zm2-2h2v2h-2zm2 2h2v2h-2zm2 2h2v6h-2zM3 10h2v8H3zm8-4h2v4h-2zm6 12h2v2h-2zM7 20h10v2H7zm-2-2h2v2H5zm4-2h6v4H9z\"/><path d=\"M11 14h2v3h-2z\"/></g>","gift":"<path fill=\"currentColor\" d=\"M4 6h16v2H4zM2 8h2v4H2zm2 4h16v2H4zm16-4h2v4h-2zM6 4h2v2H6zm2-2h3v2H8zm3 2h2v2h-2zm2-2h3v2h-3zm3 2h2v2h-2zM4 14h2v6H4zm2 6h12v2H6zm12-6h2v6h-2zm-7-6h2v4h-2zm0 6h2v6h-2z\"/>","volume-3":"<path fill=\"currentColor\" d=\"M11 22H9v-2H7v-2h2V6H7V4h2V2h2zm8 0h-6v-2h6zm2-2h-2v-2h2zM7 18H5v-2h2zm10 0h-4v-2h4zm6 0h-2V6h2zM5 10H3v4h2v2H1V8h4zm14 6h-2V8h2zm-4-2h-2v-4h2zM7 8H5V6h2zm10 0h-4V6h4zm4-2h-2V4h2zm-2-2h-6V2h6z\"/>","home":"<path fill=\"currentColor\" d=\"M4 20h16v2H4zm16-10h2v10h-2zM2 10h2v10H2zm2-2h2v2H4zm2-2h2v2H6zm2-2h2v2H8zm2-2h4v2h-4zm4 2h2v2h-2zm2 2h2v2h-2zm2 2h2v2h-2zM8 14h2v6H8zm2-2h4v2h-4zm4 2h2v6h-2z\"/>","sword":"<path fill=\"currentColor\" d=\"M11 2h2v2h-2zM9 4h2v12H9zm4 0h2v12h-2zM7 16h10v2H7zm4 2h2v4h-2z\"/>","eye":"<path fill=\"currentColor\" d=\"M16 20H8v-2h8zm-8-2H4v-2h4zm12 0h-4v-2h4zM4 16H2v-2h2zm10-6h-2v2h2zh2v4h-2v2h-4v-2H8v-4h2V8h4zm8 6h-2v-2h2zM2 14H0v-4h2zm22 0h-2v-4h2zM4 10H2V8h2zm18 0h-2V8h2zM8 8H4V6h4zm12 0h-4V6h4zm-4-2H8V4h8z\"/>","hourglass":"<path fill=\"currentColor\" d=\"M16 22H8v-2h8zm-8-2H6v-4h2zm10 0h-2v-4h2zm-8-4H8v-2h2zm6 0h-2v-2h2zm-6-6h4v4h-4zm0 0H8V8h2zm6 0h-2V8h2zM8 8H6V4h2zm10 0h-2V4h2zm-2-4H8V2h8z\"/>","human-run":"<path fill=\"currentColor\" d=\"M10 3H8v2H6v2h2V5h2v2h2v2h-2v2H8v2H6v2H4v-2H2v2h2v2h2v-2h4v2h2v2h-2v2h2v-2h2v-2h-2v-4h2v-2h2v2h2v2h2v-2h2v-2h-2v2h-2v-2h-2V9h2V5h-4v2h-2V5h-2z\"/>","phone-call":"<path fill=\"currentColor\" d=\"M4 1h5v2H4zm5 2h2v4H9zM7 7h2v4H7zm-3 5h2v2H4zM2 3h2v9H2zm7 8h2v2H9zm2 2h2v2h-2zm2 2h4v2h-4zm4-2h4v2h-4zm4 2h2v5h-2zM6 14h2v2H6zm2 2h2v2H8zm2 2h2v2h-2zm2 2h9v2h-9zm1-18h5v2h-5zm7 4h2v5h-2zm-2-2h2v2h-2zm-5 2h3v2h-3zm3 2h2v3h-2z\"/>","coffee":"<path fill=\"currentColor\" d=\"M4 4h16v2H4zm0 2h2v8H4zm2 8h10v2H6zm14-8h2v4h-2zm-2 4h2v2h-2zm-2-4h2v8h-2zM2 18h18v2H2z\"/>","sunglasses":"<path fill=\"currentColor\" d=\"M15 10h5v2h-5zM4 10h5v2H4zm16 2h2v5h-2zM9 12h2v5H9zm4 0h2v5h-2zM2 12h2v5H2zm13 5h5v2h-5zM4 17h5v2H4zm7-5h2v2h-2zM2 6h2v6H2zm18 0h2v6h-2zM4 4h2v2H4zm14 0h2v2h-2zM6 12h3v2H6zm11 0h3v2h-3zM4 14h2v3H4zm11 0h2v3h-2zm-9 2h3v1H6zm11 0h3v1h-3zm-9-2h1v2H8zm11 0h1v2h-1z\"/>","angry":"<path fill=\"currentColor\" d=\"M6 20h12v2H6zM6 2h12v2H6zm12 2h2v2h-2zM4 4h2v2H4zm0 14h2v2H4zm14 0h2v2h-2zM2 6h2v12H2zm18 0h2v12h-2zM7 7h2v2H7zm2 2h2v2H9zm6-2h2v2h-2zm-2 2h2v2h-2zm-6 6h2v2H7zm2-2h6v2H9zm6 2h2v2h-2z\"/>","users":"<path fill=\"currentColor\" d=\"M5 2h6v2H5zm10 0h4v2h-4zM5 10h6v2H5zm10 0h4v2h-4zm4-6h2v6h-2zm-8 0h2v6h-2zM3 4h2v6H3zM0 18h2v4H0zm14 0h2v4h-2zm8 0h2v4h-2zM4 14h8v2H4zm12 0h4v2h-4zM2 16h2v2H2zm10 0h2v2h-2zm8 0h2v2h-2z\"/>","target":"<path fill=\"currentColor\" d=\"M5 1h14v2H5zM3 3h2v2H3zm0 16h2v2H3zm16 0h2v2h-2zm0-16h2v2h-2zm2 2h2v14h-2zM5 21h14v2H5zM1 5h2v14H1zm8 0h6v2H9zM5 9h2v6H5zm4 8h6v2H9zm8-8h2v6h-2zm-6 0h2v2h-2zM7 7h2v2H7zm0 8h2v2H7zm8 0h2v2h-2zm0-8h2v2h-2zm-6 4h2v2H9zm2 2h2v2h-2zm2-2h2v2h-2z\"/>","moon":"<path fill=\"currentColor\" d=\"M18 22H8v-2h10zM8 20H6v-2h2zm12 0h-2v-2h2zM6 18H4v-2h2zm16 0h-2v-4h-2v-2h2v-2h2zM4 16H2V6h2zm14 0h-6v-2h6zm-6-2h-2v-2h2zm-2-2H8V6h2zM6 6H4V4h2zm8-2h-2v2h-2V4H6V2h8z\"/>","scale":"<g fill=\"currentColor\"><path d=\"M13 9h2v2h-2zm2-2h2v2h-2zm2-2h2v2h-2zm2-2h2v8h-2z\"/><path d=\"M13 3h8v2h-8zm-2 12H9v-2h2zm-2 2H7v-2h2zm-2 2H5v-2h2zm-2 2H3v-8h2z\"/><path d=\"M11 21H3v-2h8z\"/></g>","zap":"<path fill=\"currentColor\" d=\"M4 13h8v6h2v2h-2v2h-2v-8H2v-4h2zm12 6h-2v-2h2zm2-2h-2v-2h2zm2-2h-2v-2h2zm-6-6h8v4h-2v-2h-8V5h-2V3h2V1h2zm-8 2H4V9h2zm2-2H6V7h2zm2-2H8V5h2z\"/>","shield":"<path fill=\"currentColor\" d=\"M4 2h16v2H4zM2 4h2v10H2zm18 0h2v10h-2zM4 14h2v2H4zm2 2h2v2H6zm4 4h4v2h-4zm10-6h-2v2h2zm-2 2h-2v2h2zm-2 2h-2v2h2zm-6 0H8v2h2z\"/>","archive":"<path fill=\"currentColor\" d=\"M3 2h18v2H3zm0 5h18v2H3zM1 4h2v3H1zm20 0h2v3h-2zm-2 5h2v11h-2zM3 9h2v11H3zm2 11h14v2H5zm4-9h6v2H9z\"/>","smile":"<path fill=\"currentColor\" d=\"M6 20h12v2H6zM6 2h12v2H6zm12 2h2v2h-2zM4 4h2v2H4zm0 14h2v2H4zm14 0h2v2h-2zM2 6h2v12H2zm18 0h2v12h-2zM7 13h2v2H7zm2 2h6v2H9zm6-2h2v2h-2zM8 8h2v2H8zm6 0h2v2h-2z\"/>","meh":"<path fill=\"currentColor\" d=\"M6 20h12v2H6zM6 2h12v2H6zm12 2h2v2h-2zM4 4h2v2H4zm0 14h2v2H4zm14 0h2v2h-2zM2 6h2v12H2zm18 0h2v12h-2zM7 14h10v2H7zm1-6h2v2H8zm6 0h2v2h-2z\"/>","battery-full":"<path fill=\"currentColor\" d=\"M4 5h14v2H4zm0 12h14v2H4zM2 7h2v10H2zm16-2h2v14h-2zm2 4h2v6h-2zM6 9h2v6H6zm4 0h2v6h-2zm4 0h2v6h-2z\"/>","bullseye":"<path fill=\"currentColor\" d=\"M18 2H6v2H4v2H2v12h2v2h2v2h12v-2h2v-2h2V6h-2V4h-2zm0 2v2h2v12h-2v2H6v-2H4V6h2V4zm-8 6h4v4h-4zM8 6h8v2H8zm0 10H6V8h2zm8 0v2H8v-2zm0 0h2V8h-2z\"/>","skull":"<g fill=\"currentColor\"><path d=\"M7 20h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2zm-6-4h2v4H9zm4 0h2v4h-2zm-8-2h2v6H5zm12 0h2v6h-2z\"/><path d=\"M3 14h4v2H3zM1 4h2v10H1zm20 0h2v10h-2zM3 2h18v2H3zm14 12h4v2h-4zM8 7h2v4H8zm6 0h2v4h-2z\"/></g>","coins":"<g fill=\"currentColor\"><path d=\"M6 2h6v2H6zM4 4h2v2H4zm8 0h2v2h-2zm-8 8h2v2H4zm8 0h2v2h-2zm-6 2h6v2H6zM2 6h2v6H2zm12 0h2v6h-2z\"/><path d=\"M14 8h4v2h-4zm-4 10h2v2h-2zm8-8h2v2h-2zm-6 10h2v2h-2zm6-2h2v2h-2z\"/><path d=\"M12 20h6v2h-6zm-4-6h2v4H8zm12-2h2v6h-2zM7 6h4v2H7z\"/><path d=\"M9 6h2v6H9zm6 8h2v4h-2zm-1-2h3v2h-3z\"/></g>","shuffle":"<path fill=\"currentColor\" d=\"M10 19H2v-2h8zm12 0h-8v-2h8zm-10-2h-2v-6h2zm6-10h2v2h2v2h-2v2h-2v2h-2v-4h-4V9h4V5h2zM8 11H2V9h6z\"/>","script":"<path fill=\"currentColor\" d=\"M16 19h2v2H4v-2h10v-2h2zM6 15h8v2H4v2H2v-4h2V5h2zM20 5h2v6h-2v8h-2V5H6V3h14z\"/>","heart":"<path fill=\"currentColor\" d=\"M13 22h-2v-2h2zm-2-2H9v-2h2zm4 0h-2v-2h2zm-6-2H7v-2h2zm8 0h-2v-2h2zM7 16H5v-2h2zm12 0h-2v-2h2zM5 14H3v-2h2zm16 0h-2v-2h2zM3 12H1V6h2zm20 0h-2V6h2zM13 8h-2V6h2zM5 6H3V4h2zm6 0H9V4h2zm4 0h-2V4h2zm6 0h-2V4h2zM9 4H5V2h4zm10 0h-4V2h4z\"/>","crown":"<g fill=\"currentColor\"><path d=\"M3 3h2v12H3zm16 0h2v12h-2zm-8 0h2v2h-2zM9 5h2v2H9zM5 5h2v2H5z\"/><path d=\"M3 3h2v2H3zm4 4h2v2H7zm6-2h2v2h-2zm2 2h2v2h-2zm2-2h2v2h-2zM5 15h14v2H5zm-2 4h18v2H3z\"/></g>","wall":"<path fill=\"currentColor\" d=\"M4 2h16v2H4zm0 18h16v2H4zM2 4h2v16H2zm18 0h2v16h-2zM4 8h16v2H4zm0 6h16v2H4zM6 4h2v4H6zm2 12h2v4H8zm6-12h2v4h-2zm2 12h2v4h-2zm-5-6h2v4h-2z\"/>","chess":"<path fill=\"currentColor\" d=\"M4 2h16v2H4zm0 18h16v2H4zM2 4h2v16H2zm18 0h2v16h-2zM8 4h4v4H8zM4 8h4v4H4zm4 4h4v4H8zm-4 4h4v4H4zM16 4h4v4h-4zm-4 4h4v4h-4zm4 4h4v4h-4zm-4 4h4v4h-4z\"/>","human-arms-up":"<path fill=\"currentColor\" d=\"M10 2h4v4h-4zM7 7h10v2H7zm2 2h2v7H9zm4 0h2v7h-2zm-4 7h2v6H9zm4 0h2v6h-2zm-2-2h2v2h-2zM5 5h2v2H5zM3 3h2v2H3zm14 2h2v2h-2zm2-2h2v2h-2z\"/>","arrow-big-up":"<path fill=\"currentColor\" d=\"M8 21h8v-2H8zm0-2h2v-6H8zm-5-6h5v-2H3zm0-2h2V9H3zm2-2h2V7H5zm2-2h2V5H7zm2-2h2V3H9zm2-2h2V1h-2zm2 2h2V3h-2zm2 2h2V5h-2zm2 2h2V7h-2zm2 4h2V9h-2zm-3 0h3v-2h-3zm-2 6h2v-6h-2z\"/>","sparkles":"<g fill=\"currentColor\"><path d=\"M11 1h2v4h-2zm0 22h2v-4h-2zM9 5h2v4H9zm0 14h2v-4H9zm4-14h2v4h-2zm0 14h2v-4h-2zM5 9h4v2H5zm14 0h-4v2h4zM1 11h4v2H1zm22 0h-4v2h4zM5 13h4v2H5zm14 0h-4v2h4zm0-12h2v6h-2z\"/><path d=\"M17 3h6v2h-6zM3 17h2v2H3zm-2 2h2v2H1zm2 2h2v2H3zm2-2h2v2H5z\"/></g>","memory-stick":"<path fill=\"currentColor\" d=\"M3 4h18v2H3zM1 6h2v3H1zm0 5h2v7H1zm20 0h2v7h-2zM3 9h2v2H3zm16 0h2v2h-2zm2-3h2v3h-2zM3 18h18v2H3zm0-4h18v2H3zm2 2h2v2H5zm4 0h2v2H9zm4 0h2v2h-2zm4 0h2v2h-2zM7 8h2v4H7zm4 0h2v4h-2zm4 0h2v4h-2z\"/>","cake":"<path fill=\"currentColor\" d=\"M1 20h22v2H1zm2-8h2v8H3zm2-2h14v2H5zm14 2h2v8h-2zm-8-5h2v3h-2zM7 7h2v3H7zm8 0h2v3h-2zM7 3h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2zM5 14h2v2H5zm2 2h4v2H7zm4-2h6v2h-6zm6 2h2v2h-2z\"/>","moon-stars":"<path fill=\"currentColor\" d=\"M20 0h2v2h2v2h-2v2h-2V4h-2V2h2zM8 4h8v2h-2v2h-2V6H8zM6 8V6h2v2zm0 8H4V8h2zm2 2H6v-2h2zm8 0v2H8v-2zm2-2v2h-2v-2zm-2-4v-2h2V8h2v8h-2v-4zm-4 0h4v2h-4zm0 0V8h-2v4zm-8 6H2v2H0v2h2v2h2v-2h2v-2H4z\"/>","tree":"<g fill=\"currentColor\"><path d=\"M6 4h2v2H6zm2-2h8v2H8zm10 4h2v4h-2zm2 4h2v6h-2zm-2 6h2v2h-2zM4 16h2v2H4zm-2-6h2v6H2zm4 8h12v2H6zM4 6h2v4H4z\"/><path d=\"M11 18h2v4h-2zm5-14h2v2h-2z\"/></g>","trending-up":"<path fill=\"currentColor\" d=\"M4 18H2v-2h2zm2-2H4v-2h2zm8 0h-2v-2h2zm-6-2H6v-2h2zm4 0h-2v-2h2zm4 0h-2v-2h2zm6-8v8h-2v-4h-2V8h-4V6zm-12 6H8v-2h2zm8 0h-2v-2h2z\"/>","user-x":"<path fill=\"currentColor\" d=\"M9 2h6v2H9zm0 8h6v2H9zm6-6h2v6h-2zM7 4h2v6H7zM4 18h2v4H4zm16 2h2v2h-2zM8 14h6v2H8zm-2 2h2v2H6zm10 0h2v2h-2zm2 2h2v2h-2zm2-2h2v2h-2zm-4 4h2v2h-2z\"/>","dice":"<path fill=\"currentColor\" d=\"M5 3H3v18h18V3zm14 2v14H5V5zM9 7H7v2h2zm6 0h2v2h-2zm-6 8H7v2h2zm6 0h2v2h-2zm-2-4h-2v2h2z\"/>","repeat":"<g fill=\"currentColor\"><path d=\"M17 5h2v2h-2zM5 17h2v2H5zm6-14h2v6h-2zM9 1h2v8H9zm0 8h2v2H9zm10 8H9v2h10zM5 7H3v10h2z\"/><path d=\"M13 15h-2v6h2zm2-2h-2v8h2zm0 8h-2v2h2zM5 5h10v2H5zm14 12h2V7h-2z\"/></g>","grid":"<path fill=\"currentColor\" d=\"M2 2h20v20H2zm2 2v4h4V4zm6 0v4h4V4zm6 0v4h4V4zm4 6h-4v4h4zm0 6h-4v4h4zm-6 4v-4h-4v4zm-6 0v-4H4v4zm-4-6h4v-4H4zm6-4v4h4v-4z\"/>","cloud":"<g fill=\"currentColor\"><path d=\"M22 10h-4v2h4zm2 2h-2v6h2zm-2 6H2v2h20zM2 12H0v6h2zm2-2H2v2h2zm4-2H4v2h4zm8-4h-6v2h6zm-6 2H8v2h2zm0 4H8v2h2zm8-4h-2v2h2z\"/><path d=\"M20 8h-2v4h2zm-2 4h-2v2h2z\"/></g>","sofa":"<path fill=\"currentColor\" d=\"M5 3h14v2H5zM3 5h2v3H3zM1 8h6v2H1zm0 2h2v7H1zm2 7h18v2H3zm18-7h2v7h-2zm-4-2h6v2h-6zm0 2h2v2h-2zM7 12h10v2H7zm-2-2h2v2H5zm6-5h2v7h-2zm8 0h2v3h-2zm0 14h2v2h-2zM3 19h2v2H3z\"/>","map":"<path fill=\"currentColor\" d=\"M4 20h2v2H2V6h2zm12 0h2v2h-4v-2h-2v-2h2V8h-2V6h4zm-8 0H6v-2h2zm12 0h-2v-2h2zM10 4h2v2h-2v10h2v2H8V4H6V2h4zm12 14h-2V4h-2V2h4zM6 6H4V4h2zm12 0h-2V4h2z\"/>","package":"<g fill=\"currentColor\"><path d=\"M10 20h4v2h-4zm0-16h4V2h-4zm0 6h4v2h-4zm4 8h4v2h-4zm0-12h4V4h-4zm0 2h4v2h-4zm4 8h4v2h-4zm0-8h4V6h-4zM6 18h4v2H6zM6 6h4V4H6zm0 2h4v2H6zm-4 8h4v2H2zm0-8h4V6H2z\"/><path d=\"M2 6h2v12H2zm18 0h2v12h-2zm-8 6h2v8h-2zm-2-6h4v2h-4z\"/></g>","group":"<path fill=\"currentColor\" d=\"M3 3h18v18H3zm2 2v14h14V5zm2 2h4v4H7zm6 0h4v4h-4zm-6 6h4v4H7zm6 0h4v4h-4z\"/>","briefcase":"<path fill=\"currentColor\" d=\"M2 8h2v12H2zm18 0h2v12h-2zM4 6h16v2H4zm0 14h16v2H4zM8 4h2v2H8zm2-2h4v2h-4zm4 2h2v2h-2z\"/>","test-tube":"<g fill=\"currentColor\"><path d=\"M7 2h10v2H7zm1 2h2v16H8zm2 16h4v2h-4zm4-16h2v16h-2z\"/><path d=\"M8 13h8v2H8z\"/></g>","calendar":"<path fill=\"currentColor\" d=\"M5 4h14v2H5zm0 16h14v2H5zM3 10h2v10H3zm0-4h2v2H3zm16 0h2v2h-2zm0 4h2v10h-2zM3 8h18v2H3zm12-6h2v2h-2zM7 2h2v2H7z\"/>","ship":"<g fill=\"currentColor\"><path d=\"M14 8h2v2h-2zm4 8h2v2h-2zM8 4h2v4H8z\"/><path d=\"M6 6h8v2H6zm-4 4h20v2H2zm18 2h2v4h-2zM2 12h2v6H2zm4-4h2v2H6z\"/><path d=\"M0 16h4v2H0zm4 2h4v2H4zm4-2h4v2H8zm4 2h4v2h-4zm4-2h4v2h-4zm4 2h4v2h-4z\"/></g>","kanban":"<path fill=\"currentColor\" d=\"M21 3H3v18h18zM5 19V5h14v14zM9 7H7v8h2zm2 0h2v4h-2zm6 0h-2v10h2z\"/>","blocks":"<g fill=\"currentColor\"><path d=\"M15 1h6v2h-6zm-2 2h2v6h-2zm2 6h6v2h-6zm6-6h2v6h-2zM3 5h6v2H3zM1 7h2v14H1zm2 14h14v2H3zm14-6h2v6h-2zM3 13h14v2H3z\"/><path d=\"M9 7h2v14H9z\"/></g>","dog":"<path fill=\"currentColor\" d=\"M14 22h-4v-2h4zm2-2h-2v-2h-4v2H8v-2H5v-2h6v-2h2v2h6v2h-3zM3 10h2v6H3v-4H1V6h2zm20 2h-2v4h-2v-6h2V6h2zm-12 0H9V8h2zm4 0h-2V8h2zm-8-2H5V6h2zm12 0h-2V6h2zM5 6H3V4h2zm14-2h-2v2h-2V4H9v2H7V4H5V2h14zm2 2h-2V4h2z\"/>","box":"<g fill=\"currentColor\"><path d=\"M14 4h4v2h-4zm-4-2h4v2h-4zM6 8h4v2H6zm0 10h4v2H6zm4-8h4v2h-4zm0 10h4v2h-4zm4-12h4v2h-4zm0 10h4v2h-4zM6 4h4v2H6zM2 6h4v2H2zm0 10h4v2H2zM18 6h4v2h-4zm0 10h4v2h-4z\"/><path d=\"M2 6h2v12H2zm18 0h2v12h-2zm-8 6h2v8h-2z\"/></g>"};
+</script>
+<script>
+(function () {
+    function $(id) { return document.getElementById(id) }
+    const palco = $("stage"), conteudo = $('content'), cobertura = $("mask"), linhaTx = $('tx');
+    const SEM_MOV = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const N = RACAS.length;
+    let TOTAL = PERGUNTAS.length;
+    const IDX_DESENHO = PERGUNTAS.findIndex((q) => q.type === "draw");
+    function doisDig(n) {
+        return String(n).padStart(2, "0")
+    }
+    function espera(ms) {
+        return new Promise(r => setTimeout(r, SEM_MOV ? Math.min(ms, 60) : ms))
+    }
+    function proxFrame() {
+        return new Promise(r => requestAnimationFrame(() => r()))
+    }
+
+    let resp = [];
+    let travado = true;
+    let estadoCob = 'cover';
+    let atual = null;
+
+    function icone(name, cls) {
+        return '<svg class="ic' + (cls ? " " + cls : "") + '" viewBox="0 0 24 24" aria-hidden="true" shape-rendering="crispEdges">' + (ICONES[name] || "") + '</svg>';
+    }
+    let CAPACETE = [
+        '......XooX......', "....XXXooXXX....", '...XXXXooXXXX...', "..XXXXXooXXXXX..", '..XXXXXooXXXXX..', '.XXXXXXooXXXXXX.',
+        "XXXXXXXXXXXXXXXX", "XXXXXXXXXXXXXXXX", '................', '...ee......ee...', "...ee......ee...",
+    ];
+    function capacete() {
+        let body = '', eyes = '';
+        CAPACETE.forEach((row, y) => {
+            for (let x = 0; x < row.length; x++) {
+                const c = row[x];
+                if (c === 'X') body += '<rect x="' + x + '" y="' + y + '" width="1" height="1" fill="#fcee09"/>';
+                else if (c === 'o') body += '<rect x="' + x + '" y="' + y + '" width="1" height="1" fill="#ff3355"/>';
+                else if (c === "e") eyes += '<rect x="' + x + '" y="' + y + '" width="1" height="1" fill="#2ee6f6"/>';
+            }
+        });
+        return '<svg viewBox="0 0 16 11" shape-rendering="crispEdges" aria-hidden="true">' + body + '<g class="olhos">' + eyes + '</g></svg>';
+    }
+    function cria(tag, cls, text) { let e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+    function botao(rotulo, opts) {
+        opts = opts || {};
+        const b = cria("button", "botao" + (opts.ghost ? ' vazado' : ''));
+        b.type = 'button';
+        b.innerHTML = '<span class="moldura"><span class="miolo">' + (opts.icon ? icone(opts.icon) : "") + '<span></span></span></span>';
+        b.querySelector(".miolo span").textContent = rotulo;
+        if (opts.onClick) b.addEventListener('click', opts.onClick);
+        return b;
+    }
+    function hash(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(16).padStart(8, "0"); }
+    function atualizaProgresso(done) {
+        $("count").textContent = "obra " + doisDig(done) + '/' + doisDig(TOTAL);
+        $("meter").style.width = (100 * done / TOTAL) + "%";
+    }
+
+    const ctxCob = cobertura.getContext("2d");
+    function corFundo() { return getComputedStyle(document.documentElement).getPropertyValue("--ground").trim() || "#b09010"; }
+    function ajustaCobertura() {
+        const r = palco.getBoundingClientRect();
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        cobertura.width = Math.max(1, Math.round(r.width * dpr));
+        cobertura.height = Math.max(1, Math.round(r.height * dpr));
+        ctxCob.setTransform(dpr, 0, 0, dpr, 0, 0);
+        return { w: r.width, h: r.height };
+    }
+    function tudoCoberto() {
+        const s = ajustaCobertura();
+        ctxCob.fillStyle = corFundo();
+        ctxCob.fillRect(0, 0, s.w, s.h);
+    }
+    function limpaCobertura() { ajustaCobertura(); ctxCob.clearRect(0, 0, cobertura.width, cobertura.height); }
+    function animaCobertura(mode, dur) {
+
+        return new Promise((resolve) => {
+            if (SEM_MOV) { if (mode === "in") limpaCobertura(); else tudoCoberto(); estadoCob = mode === "in" ? 'clear' : "cover"; resolve(); return; }
+            const s = ajustaCobertura();
+            const B = s.w > 700 ? 10 : 8;
+            let cols = Math.ceil(s.w / B), linhas = Math.ceil(s.h / B), n = cols * linhas;
+            const t0 = new Float32Array(n), kind = new Uint8Array(n);
+            let flash = 150;
+            for (let i = 0; i < n; i++) {
+                let x = i % cols;
+                t0[i] = (0.5 * (x / cols) + 0.5 * Math.random()) * dur * 0.8;
+                kind[i] = Math.random() < 0.07 ? 2 : 1;
+            }
+            const ground = corFundo();
+            let comecar = null;
+            function paint(cria) {
+                ctxCob.clearRect(0, 0, s.w, s.h);
+                let pg = new Path2D(), pi = new Path2D(), pr = new Path2D();
+                let pending = false;
+                for (let i = 0; i < n; i++) {
+                    let e = cria - t0[i];
+                    let st;
+                    if (e < 0) st = mode === "in" ? 0 : 2;
+                    else if (e < flash) { st = 1; pending = true; }
+                    else st = mode === "in" ? 2 : 0;
+                    if (e < flash) pending = true;
+                    if (st === 2) continue;
+                    const x = (i % cols) * B, y = Math.floor(i / cols) * B;
+                    if (st === 0) pg.rect(x, y, B, B);
+                    else if (kind[i] === 2) pr.rect(x, y, B, B);
+                    else pi.rect(x, y, B, B);
+                }
+                ctxCob.fillStyle = ground; ctxCob.fill(pg);
+                ctxCob.fillStyle = "#14100a"; ctxCob.fill(pi);
+                ctxCob.fillStyle = "#ff3355"; ctxCob.fill(pr);
+                return pending;
+            }
+            paint(0);
+            function tick(now) {
+                if (comecar == null) comecar = now;
+                const pending = paint(now - comecar);
+                if (pending) requestAnimationFrame(tick);
+                else {
+                    if (mode === 'in') { ctxCob.clearRect(0, 0, s.w, s.h); estadoCob = 'clear'; }
+                    else estadoCob = "cover";
+                    resolve();
+                }
+            }
+            requestAnimationFrame(tick);
+        });
+    }
+    window.addEventListener('resize', () => { if (estadoCob === 'cover') tudoCoberto(); });
+
+    let timerTx = null;
+    function bytesHex(n) { let s = ""; for (let i = 0; i < n; i++) s += Math.floor(Math.random() * 256).toString(16).padStart(2, '0') + " "; return s; }
+    // so enfeite, esses numeros nao querem dizer nada
+    function transmite(rotulo, semente, ms) {
+        clearInterval(timerTx);
+        if (SEM_MOV) { linhaTx.textContent = 'tx> ' + rotulo + ' ok ' + hash(semente).slice(0, 4); return; }
+        let t0 = performance.now();
+        timerTx = setInterval(() => {
+            if (performance.now() - t0 > ms) { clearInterval(timerTx); linhaTx.textContent = 'tx> ' + rotulo + ' ok ' + hash(semente).slice(0, 4); return; }
+            linhaTx.textContent = "tx> " + rotulo + " " + bytesHex(22);
+        }, 45);
+    }
+
+    // troca de tela: cobre de pixel, desenha a nova e descobre
+    async function trocaTela(desenha) {
+        travado = true;
+        if (estadoCob === 'clear') await animaCobertura('out', 540);
+        conteudo.textContent = "";
+        atual = null;
+        desenha(conteudo);
+        try { $('app').scrollIntoView({ block: 'start' }); } catch (e) {  }
+        await proxFrame();
+        await animaCobertura('in', 700);
+        travado = false;
+    }
+
+    function abertura() {
+        atualizaProgresso(0);
+        linhaTx.textContent = "tx> aguardando início";
+        trocaTela((raiz) => {
+            let caixa = cria("div", "abertura");
+            let mark = cria("div", "capa"); mark.innerHTML = capacete();
+            const head = cria("div");
+            head.appendChild(cria('h1', "titulo-grande", 'Bob, o Construtor'));
+            head.appendChild(cria("div", "listras"));
+            head.appendChild(cria("p", "frase", 'Podemos construir? Sim, podemos.'));
+            const speech = cria("div", "fala");
+            speech.appendChild(cria("p", null, 'Eu estou aqui para entender quem tu é e até onde tu pode chegar.'));
+            speech.appendChild(cria("p", null, 'Vou te apresentar algumas escolhas para entender a tua mente.'));
+            speech.appendChild(cria('p', null, "Seus dados vão ser compilados e ordenados a uma versão tua direcionada na tua personalidade."));
+            const go = cria("div", "caixa-ir");
+            go.appendChild(botao('Iniciar construção', { icon: 'terminal', onClick: () => { if (!travado) comecar(); } }));
+            caixa.append(mark, head, speech, go);
+            raiz.appendChild(caixa);
+        });
+    }
+
+    function comecar() {
+        resp = new Array(TOTAL).fill(null);
+        mostraPergunta(0);
+    }
+
+    function mostraPergunta(qi) {
+        const q = PERGUNTAS[qi];
+        if (q.type === "draw") { telaDesenho(qi); return; }
+        // embaralha as opcoes
+        const ordem = q.o.map((_, i) => i);
+        for (let i = ordem.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [ordem[i], ordem[j]] = [ordem[j], ordem[i]]; }
+        trocaTela((raiz) => {
+            atualizaProgresso(qi);
+            raiz.appendChild(cria("p", 'pergunta', q.q));
+            const lista = cria('ul', "opcoes");
+            ordem.forEach((oi, k) => {
+                let o = q.o[oi];
+                let item = cria("li");
+                let b = cria("button", 'opcao'); b.type = 'button';
+                b.innerHTML = '<span class="moldura"><span class="miolo"><span class="icone">' + icone(o.i) + '</span><span class="texto"></span><span class="tecla">' + (k + 1) + '</span></span></span>';
+                b.querySelector('.texto').textContent = o.t;
+                b.addEventListener('click', () => escolhe(qi, oi, b));
+                item.appendChild(b); lista.appendChild(item);
+            });
+            raiz.appendChild(lista);
+            atual = { qi, order: ordem, buttons: Array.from(lista.querySelectorAll('.opcao')) };
+        });
+    }
+
+    async function escolhe(qi, oi, b) {
+        if (travado) return;
+        travado = true;
+        b.classList.add("marcada");
+        if (atual) atual.buttons.forEach((x) => { x.disabled = true; });
+        //console.log(answers)
+        resp[qi] = oi;
+        atualizaProgresso(qi + 1);
+        transmite("bloco " + doisDig(qi + 1) + '/' + doisDig(TOTAL), qi + ":" + oi + ":" + PERGUNTAS[qi].o[oi].t, 620);
+        await espera(300);
+        travado = false;
+        proxima(qi);
+    }
+
+    function proxima(qi) { if (qi + 1 < TOTAL) mostraPergunta(qi + 1); else compilar(); }
+
+    document.addEventListener('keydown', (e) => {
+        if (travado || !atual || e.ctrlKey || e.metaKey || e.altKey) return;
+        const k = parseInt(e.key, 10);
+        if (k >= 1 && k <= atual.buttons.length) { e.preventDefault(); atual.buttons[k - 1].click(); }
+    });
+
+    function telaDesenho(qi) {
+        const q = PERGUNTAS[qi];
+        trocaTela((raiz) => {
+            atualizaProgresso(qi);
+            atual = null;
+            raiz.appendChild(cria("p", "pergunta", q.q));
+            const caixa = cria('div', "quadro");
+            const cv = cria('canvas', 'rabisco');
+            const SC = 2;
+            cv.width = LARG * SC; cv.height = ALT * SC;
+            cv.setAttribute('role', "img");
+            cv.setAttribute("aria-label", 'Área de desenho');
+            caixa.appendChild(cv);
+            const warn = cria("p", "aviso"); warn.setAttribute('role', 'status');
+            const row = cria("div", 'linha');
+            row.style.marginTop = '14px';
+            let ctx = cv.getContext("2d");
+            ctx.scale(SC, SC);
+            ctx.strokeStyle = "#fcee09"; ctx.lineWidth = 4.5; ctx.lineCap = "round"; ctx.lineJoin = "round";
+            let tracos = [], cur = null;
+            const pos = (e) => { let r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) * LARG / r.width, y: (e.clientY - r.top) * ALT / r.height, t: e.timeStamp }; };
+            // mouse e dedo passam por aqui
+            cv.addEventListener("pointerdown", (e) => {
+                e.preventDefault();
+                try { cv.setPointerCapture(e.pointerId); } catch (x) {  }
+                cur = [pos(e)]; tracos.push(cur); warn.textContent = "";
+                ctx.beginPath(); ctx.moveTo(cur[0].x, cur[0].y); ctx.lineTo(cur[0].x + 0.01, cur[0].y); ctx.stroke();
+            });
+            cv.addEventListener("pointermove", (e) => {
+                if (!cur) return;
+                let p = pos(e), l = cur[cur.length - 1];
+                if (Math.hypot(p.x - l.x, p.y - l.y) < 1.5) return;
+                cur.push(p);
+                ctx.beginPath(); ctx.moveTo(l.x, l.y); ctx.lineTo(p.x, p.y); ctx.stroke();
+            });
+            const end = () => { cur = null; };
+            cv.addEventListener("pointerup", end);
+            cv.addEventListener("pointercancel", end);
+            const btLimpar = botao('Limpar', { ghost: true, icon: "trash", onClick: () => { tracos = []; cur = null; ctx.clearRect(0, 0, LARG, ALT); warn.textContent = ''; } });
+            const btEnviar = botao('Enviar desenho', { icon: "send", onClick: () => {
+                if (travado) return;
+                let f = lerDesenho(tracos);
+                if (f.empty) { warn.textContent = 'O traço ficou curto demais pra eu ler. Desenha um pouco mais, ou pula.'; return; }
+                const pk = racaDoDesenho(null, CALIB, f);
+                resp[qi] = { p: pk.p, s: pk.s, f: f, img: cv.toDataURL("image/png") };
+                desenhoEnviado(qi);
+            } });
+            let btPular = botao('Pular', { ghost: true, onClick: () => { if (travado) return; resp[qi] = { skip: true }; desenhoEnviado(qi); } });
+            row.append(btEnviar, btLimpar, btPular);
+            raiz.appendChild(caixa);
+            raiz.appendChild(row);
+            raiz.appendChild(warn);
+            raiz.appendChild(cria('p', "dica", 'Bob olha como tu desenha: tamanho, curvas, ângulos e a velocidade do traço. É uma leitura de brincadeira, e vale como uma pergunta só.'));
+        });
+    }
+    async function desenhoEnviado(qi) {
+        travado = true;
+        atualizaProgresso(qi + 1);
+        transmite('desenho ' + doisDig(qi + 1) + "/" + doisDig(TOTAL), "draw" + qi + JSON.stringify(resp[qi] && resp[qi].f || 0), 760);
+        await espera(260);
+        travado = false;
+        proxima(qi);
+    }
+
+    async function compilar() {
+        const linhas = calculaResultado(resp, PERGUNTAS, N);
+        const porRaca = linhas.slice().sort((a, b) => a.race - b.race);
+        let steps = [[0, 'lendo as ' + TOTAL + " respostas"], [0.28, 'ordenando o padrão cerebral'], [0.58, 'comparando com as ' + N + ' raças'], [0.84, "montando a tua versão"]];
+        let list = [], elSituacao = null, caixaIr = null;
+        atualizaProgresso(TOTAL);
+        transmite('compilando', 'final' + resp.map((a) => (a && a.p !== undefined ? "d" + a.p : a)).join(","), 1200);
+        await trocaTela((raiz) => {
+            raiz.appendChild(cria("p", 'pergunta', "Eu analisarei a sua raça e o seu padrão cerebral e vou lhe entregar as suas características fortes e fracas."));
+            elSituacao = cria('p', "situacao", steps[0][1]);
+            raiz.appendChild(elSituacao);
+            const lista = cria("ul", "varredura");
+            let ordem = porRaca.map((r) => r.race);
+            for (let i = ordem.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [ordem[i], ordem[j]] = [ordem[j], ordem[i]]; }
+            ordem.forEach((ri) => {
+                const row = linhas.find((x) => x.race === ri);
+                let item = cria('li');
+                item.appendChild(cria('span', null, RACAS[ri].pt));
+                let trk = cria('span', 'trilho'); const bar = cria("i"); trk.appendChild(bar);
+                const pc = cria('span', "porc", '0%');
+                item.append(trk, pc);
+                lista.appendChild(item);
+                list.push({ li: item, bar, pc, pct: row.pct, race: ri, jit: 0.75 + Math.random() * 0.5 });
+            });
+            raiz.appendChild(lista);
+            caixaIr = cria('div', 'linha'); caixaIr.style.marginTop = "22px"; caixaIr.hidden = true;
+            caixaIr.appendChild(botao('Ver a minha ficha', { icon: 'check', onClick: () => { if (!travado) mostraResultado(linhas); } }));
+            raiz.appendChild(caixaIr);
+        });
+        const dur = SEM_MOV ? 50 : 2800;
+        let t0 = performance.now();
+        await new Promise((resolve) => {
+            function tick(now) {
+                const p = Math.min(1, (now - t0) / dur);
+                let si = 0; steps.forEach((s, i) => { if (p >= s[0]) si = i; });
+                elSituacao.textContent = steps[si][1];
+                list.forEach((it) => {
+                    let v = Math.min(it.pct, Math.round((it.pct * Math.min(1, p * it.jit)) / 4) * 4);
+                    it.bar.style.width = v + "%";
+                    it.pc.textContent = v + "%";
+                });
+                if (p < 1) requestAnimationFrame(tick); else resolve();
+            }
+            requestAnimationFrame(tick);
+        });
+        list.forEach((it) => { it.bar.style.width = it.pct + '%'; it.pc.textContent = it.pct + "%"; });
+        await espera(500);
+        elSituacao.textContent = 'ordenado. melhor encaixe: ' + RACAS[linhas[0].race].pt;
+        let lista = list[0].li.parentNode;
+        list.sort((a, b) => linhas.findIndex((r) => r.race === a.race) - linhas.findIndex((r) => r.race === b.race));
+        list.forEach((it) => lista.appendChild(it.li));
+        list[0].li.classList.add('primeiro');
+        caixaIr.hidden = false;
+        try { caixaIr.querySelector("button").focus({ preventScroll: true }); } catch (e) {  }
+    }
+
+    function sorteia(arr, k) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { let j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a.slice(0, k); }
+    function etiqueta(rotulo, value) { const c = cria("span", 'etiqueta'); if (value) { c.appendChild(document.createTextNode(rotulo + ' ')); const b = cria("b", null, value); c.appendChild(b); } else c.textContent = rotulo; return c; }
+    function textoFicha(r, venc) {
+        return 'Bob, o Construtor montou a minha versão: ' + r.pt + ' (' + venc.pct + '%)\n' +
+            'Forma final: ' + r.final + ". " + r.diff + '.\n\n' +
+            'Características fortes:\n' + r.forte.map((t) => "- " + t).join('\n') + '\n\n' +
+            'Características fracas:\n' + r.fraco.map((t) => '- ' + t).join('\n');
+    }
+    function mostraResultado(linhas) {
+        const venc = linhas[0], r = RACAS[venc.race];
+        transmite('ficha', 'res' + venc.race + venc.score, 500);
+        trocaTela((raiz) => {
+            let res = cria("div", 'ficha');
+            const top = cria('div');
+            top.appendChild(cria('p', "chamada", 'Projeto concluído. Essa é a tua versão:'));
+            top.appendChild(cria("h2", 'raca-nome', r.pt));
+            let chips = cria("div", "etiquetas");
+            chips.appendChild(etiqueta('Encaixe', venc.pct + '%'));
+            chips.appendChild(etiqueta('Forma final', r.final));
+            chips.appendChild(etiqueta(r.diff));
+            if (r.name !== r.pt) chips.appendChild(etiqueta("No mod", r.name));
+            top.appendChild(chips);
+            res.appendChild(top);
+
+            let who = cria("div", 'bloco');
+            who.appendChild(cria('h3', 'titulo', 'Quem tu é'));
+            who.appendChild(cria("p", null, r.persona));
+            const minhas = [];
+            resp.forEach((a, qi) => { const q = PERGUNTAS[qi]; if (q.type !== 'draw' && a != null && q.o[a].p === venc.race) minhas.push(q.o[a].t); });
+            sorteia(minhas, 2).forEach((t) => who.appendChild(cria('blockquote', 'citacao', '“' + t + "”")));
+            let perto = venc.score - 3 * venc.hits;
+            who.appendChild(cria("p", 'miudo', "Foi por isso que tu caiu aqui: " + venc.hits + (venc.hits === 1 ? " resposta bateu" : ' respostas bateram') + " direto com essa raça" + (perto > 0 ? " e " + perto + (perto === 1 ? ' chegou' : " chegaram") + ' perto.' : ".")));
+            res.appendChild(who);
+
+            const cols = cria('div', 'colunas');
+            function panel(title, items, icon, cls) {
+                let p = cria('section', 'painel' + (cls ? " " + cls : ''));
+                p.appendChild(cria('h3', 'titulo', title));
+                const lista = cria("ul");
+                items.forEach((t) => { let item = cria("li"); item.innerHTML = icone(icon); item.appendChild(cria('span', null, t)); lista.appendChild(item); });
+                p.appendChild(lista);
+                return p;
+            }
+            cols.appendChild(panel('Características fortes', r.forte, "check"));
+            cols.appendChild(panel("Características fracas", r.fraco, "warning-diamond", "ruim"));
+            res.appendChild(cols);
+
+            const rk = cria("div", "bloco");
+            rk.appendChild(cria('h3', 'titulo', "Quem mais chegou perto"));
+            const lista = cria("ul", "ranking");
+            linhas.slice(0, 5).forEach((x) => {
+                let item = cria('li');
+                item.appendChild(cria("span", null, RACAS[x.race].pt));
+                const trk = cria('span', 'trilho'); let i = cria("i"); i.style.width = x.pct + '%'; trk.appendChild(i);
+                item.append(trk, cria('span', 'porc', x.pct + '%'));
+                lista.appendChild(item);
+            });
+            rk.appendChild(lista);
+            rk.appendChild(cria("p", 'miudo', 'A conta: cada escolha vale 3 pontos pra uma raça e 1 pra outra parecida. O desenho vale o mesmo que uma escolha.'));
+            res.appendChild(rk);
+
+            let d = IDX_DESENHO >= 0 ? resp[IDX_DESENHO] : null;
+            if (d) {
+                const box = cria('div', "bloco");
+                box.appendChild(cria("h3", "titulo", 'O que Bob leu no desenho'));
+                if (d.skip) box.appendChild(cria('p', 'miudo', 'Tu pulou o desenho, então ele não entrou na conta.'));
+                else {
+                    const rec = cria('div', "resumo-desenho");
+                    let im = cria("img"); im.src = d.img; im.alt = "O desenho que tu fez";
+                    let notas = notasDesenho(d.f);
+                    rec.appendChild(im);
+                    rec.appendChild(cria("p", null, (notas.length ? "Teu traço teve " + notas.join(", ") + '.' : "Teu traço ficou bem neutro.") + ' Isso puxou pra ' + RACAS[d.p].pt + ' e, de leve, pra ' + RACAS[d.s].pt + '. É leitura de brincadeira.'));
+                    box.appendChild(rec);
+                }
+                res.appendChild(box);
+            }
+
+            let act = cria('div', "linha");
+            let ta = cria("textarea", "caixa-copia"); ta.readOnly = true; ta.hidden = true; ta.value = textoFicha(r, venc);
+            let msgCopia = cria('span', null, "");
+            act.appendChild(botao('Copiar ficha', { icon: 'copy', onClick: async () => {
+                const text = textoFicha(r, venc);
+                let ok = false;
+                try { await navigator.clipboard.writeText(text); ok = true; } catch (e) { ok = false; }
+                if (!ok) { ta.hidden = false; ta.focus(); ta.select(); try { ok = document.execCommand('copy'); } catch (e) { ok = false; } }
+                msgCopia.textContent = ok ? 'Copiado.' : 'Seleciona o texto e copia à mão.';
+            } }));
+            act.appendChild(botao("Refazer o teste", { ghost: true, icon: 'reload', onClick: () => { if (!travado) abertura(); } }));
+            act.appendChild(msgCopia);
+            res.appendChild(act);
+            res.appendChild(ta);
+            raiz.appendChild(res);
+        });
+    }
+
+    // espera a fonte carregar senao a tela pisca
+    async function iniciar() {
+        tudoCoberto();
+        atualizaProgresso(0);
+        $("logo").innerHTML = capacete();
+        try { await Promise.race([document.fonts.load('26px VT323'), espera(1800)]); await document.fonts.load('700 20px "Chakra Petch"'); } catch (e) {  }
+        abertura();
+    }
+    iniciar();
+})();
+</script>
+</body>
+</html>
